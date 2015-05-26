@@ -1,23 +1,7 @@
-# Boilerplate for new Hoodie App
+# Haben und Geben
 
-You can start to build your app in a fingersnap.
+Finance management made easy and fun.
 
+## Start
 
-## Installation
-
-`$ hoodie new appName -t "zoepage/hoodie-boilerplate" `
-
-
-## Including
-
-+ jQuery-1.9.1
-+ Bootstrap 3
-
-index.html
-+ hoodie-accountbar (SignIn / SignOut)
-+ including all (css + js) files you need
-
-main.css 
-
-main.js
-+ init hoodie
+`$ hoodie start `

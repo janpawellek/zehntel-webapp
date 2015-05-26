@@ -1,6 +1,6 @@
 {
   "name": "hug",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "type": "app",
   "dependencies": {
     "hoodie-server": ">=2.0.0",
@@ -23,13 +23,5 @@
       "hoodie-plugin-email",
       "hoodie-plugin-users"
     ]
-  },
-  "gitHead": "71bfcc2717da10750003c26cb50d747a993951df",
-  "readme": "# Boilerplate for new Hoodie App\n\nYou can start to build your app in a fingersnap.\n\n\n## Installation\n\n`$ hoodie new appName -t \"zoepage/hoodie-boilerplate\" `\n\n\n## Including\n\n+ jQuery-1.9.1\n+ Bootstrap 3\n\nindex.html\n+ hoodie-accountbar (SignIn / SignOut)\n+ including all (css + js) files you need\n\nmain.css \n\nmain.js\n+ init hoodie",
-  "readmeFilename": "README.md",
-  "description": "You can start to build your app in a fingersnap.",
-  "_id": "hoodie-boilerplate@2.0.0",
-  "_shasum": "d222194656fba99690014c7c461997bf889ba90d",
-  "_from": "zoepage/hoodie-boilerplate",
-  "_resolved": "git://github.com/zoepage/hoodie-boilerplate.git#71bfcc2717da10750003c26cb50d747a993951df"
+  }
 }
