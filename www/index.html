@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Hoodie Boilerplate</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="assets/css/main.css">
+  </head>
+  <body>
+    <div class="container">
+<!-- ======================== login =============================== -->
+      <section id="account">
+        <p>Hello <span id="userName"></span>!</p>
+        <button id="signOut">Sign out</button>
+      </section>
+
+      <section id="login" style="display:none;">
+        <form id="loginform">
+          <h3>Login</h3>
+          <input type="text" id="user" value="" autofocus />
+          <input type="password" id="pwd" value="" autofocus />
+          <input type="submit" />
+        </form>
+      </section> 
+<!-- ======================== add content here =============================== -->
+      <section class="content">
+        <header>
+          <h1>Hello!</h1>
+        </header>
+
+        <section>
+          <p>Add some awesome content!</p>
+        </section>
+
+        <footer>
+         <h4>Enjoy Hoodie!</h4>
+        </footer>
+      </section>
+    </div> <!-- /.container -->
+
+<!-- ======================== end content =============================== -->
+    <script src="/assets/vendor/jquery-2.1.0.min.js"></script>
+
+    <!-- Load the dynamic version of hoodie.js that includes all the plugin code-->
+    <script src="/_api/_files/hoodie.js"></script>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/account.js"></script>
+  </body>
+</html>
