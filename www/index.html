@@ -4,28 +4,150 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Haben und Geben</title>
+    <title>Whyllet</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/main.css">
   </head>
   <body>
-    <nav class="navbar navbar-default navbar-inverse navbar-static-top">
-      <div class="navbar-header">
-        <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a href="#" class="navbar-brand">Hug</a>
-      </div>
-      <div id="navbarCollapse" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          <li><a href="#">Anmelden</a></li>
-        </ul>
+    <nav class="navbar navbar-default navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="#" class="navbar-brand">Whyllet</a>
+        </div>
+        <div id="navbarCollapse" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#">Was ist das?</a></li>
+          </ul>
+          <div class="navbar-right">
+            <button type="button" class="btn btn-default navbar-btn">Abmelden</button>
+          </div>
+        </div>
       </div>
     </nav>
     <div class="container">
-      <p>...</p>
+      <div class="input-group">
+        <span class="input-group-addon">€</span>
+        <input type="text" class="form-control" aria-label="Betrag in €" placeholder="Geld verdient? Hier eintippen!">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button">Go!</button>
+        </span>
+      </div>
+      <!--<div class="alert alert-success alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Abbrechen"><span aria-hidden="true">&times;</span></button>
+        <strong>Cool!</strong> Wie möchtest du die 500€ verteilen?
+      </div>-->
+      <div role="tabpanel" class="voffset3">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs nav-justified" role="tablist">
+            <li role="presentation" class="active">
+              <a href="#panel-spend" aria-controls="panel-spend" role="tab" data-toggle="tab">Ausgeben <span class="badge">108€</span></a>
+            </li>
+            <li role="presentation">
+              <a href="#panel-contracts" aria-controls="panel-contracts" role="tab" data-toggle="tab">Verträge <span class="badge">326€</span></a>
+            </li>
+            <li role="presentation">
+              <a href="#panel-save" aria-controls="panel-save" role="tab" data-toggle="tab">Sparen <span class="badge">500€</span></a>
+            </li>
+            <li role="presentation">
+              <a href="#panel-invest" aria-controls="panel-invest" role="tab" data-toggle="tab">Investieren <span class="badge">150€</span></a>
+            </li>
+            <li role="presentation">
+              <a href="#panel-give" aria-controls="panel-give" role="tab" data-toggle="tab">Guter Zweck <span class="badge">24€</span></a>
+            </li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="panel-spend">
+              <div class="panel-body">
+                <h1>108,70 € zum Ausgeben</h1>
+                <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
+              </div>
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Tag</th>
+                    <th>Betreff</th>
+                    <th>Betrag</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>davor</td>
+                    <td>das ist drin &rarr;</td>
+                    <td>333,70 €</td>
+                  </tr>
+                  <tr>
+                    <td>02.05.15</td>
+                    <td>Bargeld</td>
+                    <td>-45,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>08.05.15</td>
+                    <td>Bargeld</td>
+                    <td>-45,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>16.05.15</td>
+                    <td>Bargeld</td>
+                    <td>-45,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>20.05.15</td>
+                    <td>Bargeld</td>
+                    <td>-45,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>26.05.15</td>
+                    <td>Bargeld</td>
+                    <td>-45,00 €</td>
+                  </tr>
+                  <tr>
+                    <th>jetzt</th>
+                    <th>Summe</th>
+                    <th>108,70 €</th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="form-group">
+                        <label class="sr-only" for="spendInputDate">Datum</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control input-sm" id="spendInputDate" placeholder="27.05.15 (heute)">
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="form-group">
+                        <label class="sr-only" for="spendInputSubject">Betreff</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control input-sm" id="spendInputSubject" placeholder="Bargeld">
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="form-group">
+                        <label class="sr-only" for="spendInputAmount">Betrag (in Euro)</label>
+                        <div class="input-group">
+                          <div class="input-group-addon input-sm">€</div>
+                          <input type="text" class="form-control input-sm" id="spendInputAmount" placeholder="Betrag">
+                        </div>
+                      </div>
+                      <button type="submit" class="btn btn-success btn-sm">OK</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+          </form>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-contracts"><div class="panel-body">Tab 2</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-save"><div class="panel-body">Tab 3</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-invest"><div class="panel-body">Tab 4</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-give"><div class="panel-body">Tab 5</div></div>
+        </div>
+      </div>
     </div>
     <script src="assets/js/jquery-2.1.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>

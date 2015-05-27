@@ -1,4 +1,4 @@
-# Haben und Geben
+# Whyllet
 
 Finance management made easy and fun.
 
