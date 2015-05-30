@@ -6,21 +6,22 @@ var hoodie  = new Hoodie();
 function setLoggedIn(state) {
   if (state) {
     // set page layout to logged in state
-    $('#loginName').val('');
-    $('#loginPassword').val('');
+    $('.onLoginClearVal').val('');
+    $('.onLoginHide').addClass('hidden');
+    $('.onLoginShow').removeClass('hidden');
+
+    // hide login dialog and show user name
     $('#loginModal').modal('hide');
-    $('#loginFailed').addClass("hidden");
-    $('#loginButton').addClass("hidden");
-    $('#logoutButton').removeClass("hidden");
     $('.hoodieUsername').html(hoodie.account.username);
-    $('#userText').removeClass("hidden");
   }
   else {
     // set page layout to logged out state
-    $('#loginButton').removeClass("hidden");
-    $('#logoutButton').addClass("hidden");
-    $('.hoodieUsername').html('');
-    $('#userText').addClass("hidden");
+    $('.onLogoffShow').removeClass('hidden');
+    $('.onLogoffHide').addClass('hidden');
+
+    // important: clear everything in the DOM from the previously logged in user
+    $('.onLogoffClearContent').html('');
+    $('.onLogoffClearVal').val('');
   };
 }
 
@@ -39,7 +40,7 @@ $('#loginForm').submit(function(event) {
   ).fail(
     function() {
       // login failed
-      $('#loginFailed').removeClass("hidden");
+      $('#loginFailed').removeClass('hidden');
       setLoggedIn(false);
     }
   );
