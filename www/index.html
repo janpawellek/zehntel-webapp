@@ -101,7 +101,7 @@
           <!-- PANEL SPEND -->
           <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="panel-spend">
               <div class="panel-body">
-                <h1>108,70 € zum Ausgeben</h1>
+                <!--<h1>108,70 € zum Ausgeben</h1>-->
                 <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
                 <div class="form-group">
                   <strong>Memo an mich selbst</strong>: Ich brauche pro Monat zum Ausgeben ungefähr:
@@ -110,7 +110,7 @@
                     <div class="input-group-addon input-sm">€</div>
                     <input type="text" class="form-control input-sm onLogoffClearVal" id="estimatedSpendAmount" placeholder="Betrag">
                   </div>
-                  <button type="submit" class="btn btn-primary btn-sm">Speichern</button>
+                  <button type="submit" class="btn btn-success btn-sm">Speichern</button>
                   <a href="#">(Woher weiß ich das?)</a>
                 </div>
               </div>
@@ -122,13 +122,13 @@
                     <th>Betrag</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
+                <tbody id="spend-transactions" class="onLogoffClearContent">
+                  <!--<tr>
                     <td>davor</td>
                     <td>das ist drin &rarr;</td>
                     <td>333,70 €</td>
-                  </tr>
-                  <tr>
+                  </tr>-->
+                  <!--<tr>
                     <td>02.05.15</td>
                     <td>Bargeld</td>
                     <td>-45,00 €</td>
@@ -152,18 +152,20 @@
                     <td>26.05.15</td>
                     <td>Bargeld</td>
                     <td>-45,00 €</td>
-                  </tr>
-                  <tr>
+                  </tr>-->
+                  <!--<tr>
                     <th>jetzt</th>
                     <th>Summe</th>
                     <th>108,70 €</th>
-                  </tr>
+                  </tr>-->
+                </tbody>
+                <tbody>
                   <tr>
                     <td>
                       <div class="form-group">
                         <label class="sr-only" for="spendInputDate">Datum</label>
                         <div class="input-group">
-                          <input type="text" class="form-control input-sm" id="spendInputDate" placeholder="27.05.15 (heute)">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputDate" placeholder="27.05.15 (heute)">
                         </div>
                       </div>
                     </td>
@@ -171,7 +173,7 @@
                       <div class="form-group">
                         <label class="sr-only" for="spendInputSubject">Betreff</label>
                         <div class="input-group">
-                          <input type="text" class="form-control input-sm" id="spendInputSubject" placeholder="Bargeld">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputSubject" placeholder="Bargeld">
                         </div>
                       </div>
                     </td>
@@ -180,7 +182,7 @@
                         <label class="sr-only" for="spendInputAmount">Betrag (in Euro)</label>
                         <div class="input-group">
                           <div class="input-group-addon input-sm">€</div>
-                          <input type="text" class="form-control input-sm" id="spendInputAmount" placeholder="Betrag">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputAmount" placeholder="Betrag">
                         </div>
                       </div>
                       <button type="submit" class="btn btn-success btn-sm">OK</button>
@@ -201,5 +203,6 @@
     <script src="/_api/_files/hoodie.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/account.js"></script>
+    <script src="assets/js/app.spend.js"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 "use strict";
 // initialize Hoodie
-var hoodie  = new Hoodie();
+// var hoodie  = new Hoodie();
 
 // HELPER FUNCTIONS -----------------------------
 function setLoggedIn(state) {
