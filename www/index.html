@@ -99,7 +99,7 @@
         <div class="tab-content">
 
           <!-- PANEL SPEND -->
-          <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="panel-spend">
+          <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="spend-panel">
               <div class="panel-body">
                 <!--<h1>108,70 € zum Ausgeben</h1>-->
                 <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
@@ -108,7 +108,7 @@
                   <label class="sr-only" for="estimatedSpendAmount">Betrag (in Euro)</label>
                   <div class="input-group">
                     <div class="input-group-addon input-sm">€</div>
-                    <input type="text" class="form-control input-sm onLogoffClearVal" id="estimatedSpendAmount" placeholder="Betrag">
+                    <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-memo" placeholder="Betrag">
                   </div>
                   <button type="submit" class="btn btn-success btn-sm">Speichern</button>
                   <a href="#">(Woher weiß ich das?)</a>
@@ -165,7 +165,7 @@
                       <div class="form-group">
                         <label class="sr-only" for="spendInputDate">Datum</label>
                         <div class="input-group">
-                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputDate" placeholder="27.05.15 (heute)">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-date" placeholder="27.05.15 (heute)">
                         </div>
                       </div>
                     </td>
@@ -173,7 +173,7 @@
                       <div class="form-group">
                         <label class="sr-only" for="spendInputSubject">Betreff</label>
                         <div class="input-group">
-                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputSubject" placeholder="Bargeld">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-subject" placeholder="Bargeld">
                         </div>
                       </div>
                     </td>
@@ -182,7 +182,7 @@
                         <label class="sr-only" for="spendInputAmount">Betrag (in Euro)</label>
                         <div class="input-group">
                           <div class="input-group-addon input-sm">€</div>
-                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spendInputAmount" placeholder="Betrag">
+                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-amount" placeholder="Betrag">
                         </div>
                       </div>
                       <button type="submit" class="btn btn-success btn-sm">OK</button>
@@ -191,18 +191,20 @@
                 </tbody>
               </table>
           </form>
-          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-contracts"><div class="panel-body">Tab 2</div></div>
-          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-save"><div class="panel-body">Tab 3</div></div>
-          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-invest"><div class="panel-body">Tab 4</div></div>
-          <div role="tabpanel" class="tab-pane panel panel-default" id="panel-give"><div class="panel-body">Tab 5</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="contracts-panel"><div class="panel-body">Tab 2</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="save-panel"><div class="panel-body">Tab 3</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="invest-panel"><div class="panel-body">Tab 4</div></div>
+          <div role="tabpanel" class="tab-pane panel panel-default" id="give-panel"><div class="panel-body">Tab 5</div></div>
         </div>
       </div>
     </div>
     <script src="assets/js/jquery-2.1.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/moment.min.js"></script>
     <script src="/_api/_files/hoodie.js"></script>
+    <script src="assets/js/Transactions.js"></script>
+    <script src="assets/js/App.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/account.js"></script>
-    <script src="assets/js/app.spend.js"></script>
   </body>
 </html>
