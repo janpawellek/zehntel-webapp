@@ -9,6 +9,14 @@
   border-top-right-radius: 0px;
 }
 
+.negative-sum.badge {
+  background-color: #D9534F;
+}
+
+h1 > .negative-sum {
+  color: #D9534F;
+}
+
 .voffset  { margin-top: 2px; }
 .voffset1 { margin-top: 5px; }
 .voffset2 { margin-top: 10px; }

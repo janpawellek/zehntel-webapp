@@ -66,8 +66,7 @@
     <!-- MAIN CONTAINER -->
     <div class="container">
       <div class="input-group">
-        <span class="input-group-addon">€</span>
-        <input type="text" class="form-control" aria-label="Betrag in €" placeholder="Geld verdient? Hier eintippen!">
+        <input type="text" class="form-control autonumeric" aria-label="Betrag in €" placeholder="Geld verdient? Hier eintippen!">
         <span class="input-group-btn">
           <button class="btn btn-default" type="button">Go!</button>
         </span>
@@ -80,19 +79,29 @@
         <!-- Nav tabs -->
         <ul class="nav nav-tabs nav-justified" role="tablist">
             <li role="presentation" class="active">
-              <a href="#panel-spend" aria-controls="panel-spend" role="tab" data-toggle="tab">Ausgeben <span class="badge">108€</span></a>
+              <a href="#spend-panel" aria-controls="spend-panel" role="tab" data-toggle="tab">Ausgeben
+                <span class="badge spend-transactions-sum onLogoffClearContent"></span>
+              </a>
             </li>
             <li role="presentation">
-              <a href="#panel-contracts" aria-controls="panel-contracts" role="tab" data-toggle="tab">Verträge <span class="badge">326€</span></a>
+              <a href="#contracts-panel" aria-controls="contracts-panel" role="tab" data-toggle="tab">Verträge
+                <span class="badge contracts-transactions-sum onLogoffClearContent"></span>
+              </a>
             </li>
             <li role="presentation">
-              <a href="#panel-save" aria-controls="panel-save" role="tab" data-toggle="tab">Sparen <span class="badge">500€</span></a>
+              <a href="#save-panel" aria-controls="save-panel" role="tab" data-toggle="tab">Sparen
+                <span class="badge save-transactions-sum onLogoffClearContent"></span>
+              </a>
             </li>
             <li role="presentation">
-              <a href="#panel-invest" aria-controls="panel-invest" role="tab" data-toggle="tab">Investieren <span class="badge">150€</span></a>
+              <a href="#invest-panel" aria-controls="invest-panel" role="tab" data-toggle="tab">Investieren
+                <span class="badge invest-transactions-sum onLogoffClearContent"></span>
+              </a>
             </li>
             <li role="presentation">
-              <a href="#panel-give" aria-controls="panel-give" role="tab" data-toggle="tab">Guter Zweck <span class="badge">24€</span></a>
+              <a href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Geben
+                <span class="badge give-transactions-sum onLogoffClearContent"></span>
+              </a>
             </li>
         </ul>
         <!-- Tab panes -->
@@ -101,14 +110,13 @@
           <!-- PANEL SPEND -->
           <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="spend-panel">
               <div class="panel-body">
-                <!--<h1>108,70 € zum Ausgeben</h1>-->
+                <h1><span class="spend-transactions-sum onLogoffClearContent"></span> zum Ausgeben</h1>
                 <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
                 <div class="form-group">
                   <strong>Memo an mich selbst</strong>: Ich brauche pro Monat zum Ausgeben ungefähr:
                   <label class="sr-only" for="estimatedSpendAmount">Betrag (in Euro)</label>
                   <div class="input-group">
-                    <div class="input-group-addon input-sm">€</div>
-                    <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-memo" placeholder="Betrag">
+                    <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="Betrag">
                   </div>
                   <button type="submit" class="btn btn-success btn-sm">Speichern</button>
                   <a href="#">(Woher weiß ich das?)</a>
@@ -122,43 +130,7 @@
                     <th>Betrag</th>
                   </tr>
                 </thead>
-                <tbody id="spend-transactions" class="onLogoffClearContent">
-                  <!--<tr>
-                    <td>davor</td>
-                    <td>das ist drin &rarr;</td>
-                    <td>333,70 €</td>
-                  </tr>-->
-                  <!--<tr>
-                    <td>02.05.15</td>
-                    <td>Bargeld</td>
-                    <td>-45,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>08.05.15</td>
-                    <td>Bargeld</td>
-                    <td>-45,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>16.05.15</td>
-                    <td>Bargeld</td>
-                    <td>-45,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>20.05.15</td>
-                    <td>Bargeld</td>
-                    <td>-45,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>26.05.15</td>
-                    <td>Bargeld</td>
-                    <td>-45,00 €</td>
-                  </tr>-->
-                  <!--<tr>
-                    <th>jetzt</th>
-                    <th>Summe</th>
-                    <th>108,70 €</th>
-                  </tr>-->
-                </tbody>
+                <tbody id="spend-transactions" class="onLogoffClearContent"></tbody>
                 <tbody>
                   <tr>
                     <td>
@@ -181,8 +153,7 @@
                       <div class="form-group">
                         <label class="sr-only" for="spendInputAmount">Betrag (in Euro)</label>
                         <div class="input-group">
-                          <div class="input-group-addon input-sm">€</div>
-                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-amount" placeholder="Betrag">
+                          <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-input-amount" placeholder="Betrag">
                         </div>
                       </div>
                       <button type="submit" class="btn btn-success btn-sm">OK</button>
@@ -199,6 +170,7 @@
       </div>
     </div>
     <script src="assets/js/jquery-2.1.4.min.js"></script>
+    <script src="assets/js/autoNumeric.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script src="assets/js/moment.min.js"></script>
     <script src="/_api/_files/hoodie.js"></script>

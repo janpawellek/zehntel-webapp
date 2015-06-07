@@ -43,16 +43,26 @@ var App = function(basename) {
       if (!valDate.isValid) {
         // TODO handle invalid date, error message & return without saving
         console.log('invalid date');
+        return;
       };
       var strDate = valDate.toDate().toISOString();
 
-      // 2. validate subject
-      // TODO escape HTML etc.
+      // 2. validate subject (escape HTML)
+      /*var strSubject = escapeHtml(rawSubject);*/
+      // changed: don't escape anything here (but on output) to avoid escaping it twice
       var strSubject = rawSubject;
 
       // 3. validate amount
-      // TODO is it a valid number? (how to enter? as neg/pos value?)
-      var strAmount = rawAmount;
+      var strAmount = inputAmount.autoNumeric('get');
+      if (!strAmount || strAmount == 0) {
+        // TODO handle empty amount field
+        console.log('empty amount');
+        return;
+      };
+      // make it a negative value
+      if (strAmount > 0) {
+        strAmount *= -1;
+      };
 
       // persist new item
       hoodie.store.add(basename + 'item', {
