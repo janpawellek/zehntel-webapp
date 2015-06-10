@@ -18,7 +18,14 @@ function escapeHtml(string) {
   });
 }
 
-// enable autoNumeric to help entering currency data
-$('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+// execute when DOM is ready
+$(function() {
 
-var spendApp = new App('spend');
+  // enable autoNumeric to help entering currency data
+  $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+
+  // insert today's date as default
+  $('.insertToday').val(moment().format('DD.MM.YYYY'));
+
+  var spendApp = new App('spend');
+});

@@ -17,6 +17,16 @@ h1 > .negative-sum {
   color: #D9534F;
 }
 
+#income-hand {
+  padding: 0px 5px;
+}
+
+#income-dist-form h1 {
+  font-size: 140%;
+  margin-bottom: 20px;
+  margin-left: 20px;
+}
+
 .voffset  { margin-top: 2px; }
 .voffset1 { margin-top: 5px; }
 .voffset2 { margin-top: 10px; }

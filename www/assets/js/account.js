@@ -22,6 +22,9 @@ function setLoggedIn(state) {
     // important: clear everything in the DOM from the previously logged in user
     $('.onLogoffClearContent').html('');
     $('.onLogoffClearVal').val('');
+
+    // insert today's date as default
+    $('.insertToday').val(moment().format('DD.MM.YYYY'));
   };
 }
 

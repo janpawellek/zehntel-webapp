@@ -65,16 +65,66 @@
 
     <!-- MAIN CONTAINER -->
     <div class="container">
-      <div class="input-group">
-        <input type="text" class="form-control autonumeric" aria-label="Betrag in €" placeholder="Geld verdient? Hier eintippen!">
-        <span class="input-group-btn">
-          <button class="btn btn-default" type="button">Go!</button>
-        </span>
+      <!-- Income input form -->
+      <form id="income-new-form" class="form-inline">
+        <span>Neu verdientes Geld hier eintragen</span>
+        <span id="income-hand" class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>
+        <div class="form-group">
+          <label class="sr-only" for="income-date">Datum</label>
+          <input type="text" class="form-control onLogoffClearVal insertToday" id="income-date">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="income-subject">Betreff</label>
+          <input type="text" class="form-control onLogoffClearVal" id="income-subject" placeholder="Betreff">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="income-amount">Betrag</label>
+          <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-amount" placeholder="0,00 €">
+        </div>
+        <button type="submit" class="btn btn-default">OK</button>
+      </form>
+      <!-- Income distribution form -->
+      <div id="income-dist-div" class="alert alert-success alert-dismissible hidden onLogoffHide" role="alert">
+        <button id="income-dist-div-close" type="button" class="close" aria-label="Abbrechen"><span aria-hidden="true">&times;</span></button>
+        <form id="income-dist-form" class="form-horizontal">
+          <h1>Teile das Geld in diese Bereiche auf:</h1>
+          <div class="form-group">
+            <label for="income-spend" class="col-sm-2 control-label">Ausgeben:</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-spend" placeholder="0,00 €">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="income-contracts" class="col-sm-2 control-label">Verträge:</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-contracts" placeholder="0,00 €">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="income-save" class="col-sm-2 control-label">Sparen:</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-save" placeholder="0,00 €">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="income-invest" class="col-sm-2 control-label">Investieren:</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-invest" placeholder="0,00 €">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="income-give" class="col-sm-2 control-label"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Geben:</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control onLogoffClearVal autonumeric" id="income-give" placeholder="0,00 €">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-default">Geld verteilen</button>
+            </div>
+          </div>
+        </form>
       </div>
-      <!--<div class="alert alert-success alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Abbrechen"><span aria-hidden="true">&times;</span></button>
-        <strong>Cool!</strong> Wie möchtest du die 500€ verteilen?
-      </div>-->
       <div role="tabpanel" class="voffset3">
         <!-- Nav tabs -->
         <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -116,7 +166,7 @@
                   <strong>Memo an mich selbst</strong>: Ich brauche pro Monat zum Ausgeben ungefähr:
                   <label class="sr-only" for="estimatedSpendAmount">Betrag (in Euro)</label>
                   <div class="input-group">
-                    <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="Betrag">
+                    <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="0,00 €">
                   </div>
                   <button type="submit" class="btn btn-success btn-sm">Speichern</button>
                   <a href="#">(Woher weiß ich das?)</a>
@@ -125,7 +175,7 @@
               <table class="table table-striped">
                 <thead>
                   <tr>
-                    <th>Tag</th>
+                    <th>Datum</th>
                     <th>Betreff</th>
                     <th>Betrag</th>
                   </tr>
@@ -137,7 +187,7 @@
                       <div class="form-group">
                         <label class="sr-only" for="spendInputDate">Datum</label>
                         <div class="input-group">
-                          <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-date" placeholder="27.05.15 (heute)">
+                          <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="spend-input-date">
                         </div>
                       </div>
                     </td>
@@ -177,6 +227,7 @@
     <script src="assets/js/Transactions.js"></script>
     <script src="assets/js/App.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/income.js"></script>
     <script src="assets/js/account.js"></script>
   </body>
 </html>
