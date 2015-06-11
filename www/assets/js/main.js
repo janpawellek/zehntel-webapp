@@ -186,6 +186,7 @@
                 }
 
                 // persist new item
+                // TODO handle fail callback
                 hoodie.store.add(basename + 'item', {
                     date: strDate,
                     subject: strSubject,
@@ -213,13 +214,14 @@
         // insert today's date as default
         $('.insertToday').val(moment().format('DD.MM.YYYY'));
 
+        // INCOME INPUT -----------------------------
         // let the income hand blink
         blinkHand = function () {
             setTimeout(function () { $('#income-hand').toggleClass('text-success'); blinkHand(); }, 1000);
         };
         blinkHand();
 
-        // on submit of new income
+        // on submit of new income open distribution form
         $('#income-new-form').on('submit', function (event) {
             event.preventDefault();
             $('#income-dist-div').removeClass('hidden');
@@ -227,6 +229,75 @@
 
         // close distribution panel on click on the upper right x
         $('#income-dist-div-close').on('click', function (event) {
+            $('#income-dist-div').addClass('hidden');
+        });
+
+        $('#income-dist-form').on('submit', function (event) {
+            event.preventDefault();
+            // fetch income distribution
+            var rawDate = $('#income-date').val(),
+                valDate,
+                strDate,
+                strSubject = $('#income-subject').val(),
+                strAmount = $('#income-amount').autoNumeric('get'),
+                strSpend = $('#income-spend').autoNumeric('get'),
+                strContracts = $('#income-contracts').autoNumeric('get'),
+                strSave = $('#income-save').autoNumeric('get'),
+                strInvest = $('#income-invest').autoNumeric('get'),
+                strGive = $('#income-give').autoNumeric('get'),
+                incomeId = -1;
+
+            valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']);
+            if (!valDate.isValid) {
+                // TODO handle invalid date, error message & return without saving
+                window.console.log('invalid date');
+                return;
+            }
+            strDate = valDate.toDate().toISOString();
+
+            // add to Hoodie store
+            // TODO handle fail callback on every add
+            hoodie.store.add('income', {
+                date: strDate,
+                subject: strSubject,
+                amount: strSpend
+            }).done(function (income) {
+                incomeId = income.id;
+            });
+            hoodie.store.add('spenditem', {
+                date: strDate,
+                subject: strSubject,
+                amount: strSpend,
+                income: incomeId
+            });
+            hoodie.store.add('contractsitem', {
+                date: strDate,
+                subject: strSubject,
+                amount: strContracts,
+                income: incomeId
+            });
+            hoodie.store.add('saveitem', {
+                date: strDate,
+                subject: strSubject,
+                amount: strSave,
+                income: incomeId
+            });
+            hoodie.store.add('investitem', {
+                date: strDate,
+                subject: strSubject,
+                amount: strInvest,
+                income: incomeId
+            });
+            hoodie.store.add('giveitem', {
+                date: strDate,
+                subject: strSubject,
+                amount: strGive,
+                income: incomeId
+            });
+
+            // success! reset input fields
+            $('.income-input').val('');
+            $('#income-date').val(moment().format('DD.MM.YYYY'));
             $('#income-dist-div').addClass('hidden');
         });
 
