@@ -163,13 +163,19 @@
                 <h1><span class="spend-transactions-sum onLogoffClearContent"></span> zum Ausgeben</h1>
                 <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
                 <div class="form-group">
-                  <strong>Memo an mich selbst</strong>: Ich brauche pro Monat zum Ausgeben ungefähr:
-                  <label class="sr-only" for="spend-memo">Betrag (in Euro)</label>
-                  <div class="input-group">
-                    <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="0,00 €">
-                  </div>
-                  <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-                  <a href="#">(Woher weiß ich das?)</a>
+                  Memo an mich selbst: Ich brauche pro Monat zum Ausgeben ungefähr:
+                  <span id="spend-memo-change" class="onLogoffShow">
+                    <label class="sr-only" for="spend-memo">Betrag (in Euro)</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="0,00 €">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                    <a href="#">(Woher weiß ich das?)</a>
+                  </span>
+                  <span id="spend-memo-show" class="hidden onLogoffHide">
+                    <strong id="spend-memo-show-amount" class="onLogoffClearContent"></strong>
+                    <a href="#" id="spend-memo-changeit">ändern</a>
+                  </span>
                 </div>
               </div>
               <table class="table table-striped">

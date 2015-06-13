@@ -118,42 +118,79 @@
     // Generic class for a Whyllet App
     App = function (basename) {
         this.basename = basename;
+        var transactions = new Transactions($('#' + this.basename + '-transactions')),
+            memo;
 
-        // initial load of all items from the store
-        var transactions = new Transactions($('#' + this.basename + '-transactions'));
+        // initial load of all transactions from the store
         hoodie.store.findAll(this.basename + 'item').then(function (items) {
             items.forEach(transactions.add);
         });
         this.transactions = transactions;
 
-        // when an item changes, update the UI
+        // when a transaction changes, update the UI
         hoodie.store.on(this.basename + 'item:add', this.transactions.add);
         hoodie.store.on(this.basename + 'item:update', this.transactions.update);
         hoodie.store.on(this.basename + 'item:remove', this.transactions.remove);
         // clear items when user logs out
         hoodie.account.on('signout', this.transactions.clear);
 
+        // load the "memo to myself"
+        hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
+            memo = item;
+            $('#spend-memo-change').addClass('hidden');
+            $('#spend-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#spend-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
+            $('#spend-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#spend-memo').autoNumeric('set', escapeHtml(item.amount));
+            $('#spend-memo-show').removeClass('hidden');
+        });
+        this.memo = memo;
+
+        // when memo changes, update the UI
+        this.updateMemo = function (item) {
+            $('#spend-memo-change').addClass('hidden');
+            $('#spend-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#spend-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
+            $('#spend-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#spend-memo').autoNumeric('set', escapeHtml(item.amount));
+            $('#spend-memo-show').removeClass('hidden');
+        };
+        hoodie.store.on(this.basename + 'memo:add', this.updateMemo);
+        hoodie.store.on(this.basename + 'memo:update', this.updateMemo);
+
+        // handle click on change memo link
+        $('#spend-memo-changeit').on('click', function (event) {
+            event.preventDefault();
+            $('#spend-memo-change').removeClass('hidden');
+            $('#spend-memo-show').addClass('hidden');
+        });
+
         // on submit
         $('#' + this.basename + '-panel').on('submit', function (event) {
             event.preventDefault();
 
             // fetch form data
-            var rawMemoVal = $('#' + basename + '-memo').val(),
+            var inputMemo = $('#' + basename + '-memo'),
                 inputDate = $('#' + basename + '-input-date'),
                 inputSubject = $('#' + basename + '-input-subject'),
                 inputAmount = $('#' + basename + '-input-amount'),
                 rawDate = inputDate.val(),
                 rawSubject = inputSubject.val(),
                 rawAmount = inputAmount.val(),
+                strMemo = inputMemo.autoNumeric('get'),
                 valDate,
                 strDate,
                 strSubject,
                 strAmount;
 
             // save the "memo to myself"
-            if (rawMemoVal) {
-                // TODO save memo to myself
-                window.console.log('Memo: ' + rawMemoVal);
+            if (!$('#spend-memo-change').hasClass('hidden')) {
+                // TODO Handle fail case
+                hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
+                    amount: strMemo
+                });
+                $('#spend-memo-change').addClass('hidden');
+                $('#spend-memo-show').removeClass('hidden');
             }
 
             // create a new item
