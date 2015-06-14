@@ -91,6 +91,8 @@
 
         this.add = function (transaction) {
             collection.push(transaction);
+            $('.onEmptyShow').addClass('hidden');
+            $('.onEmptyHide').removeClass('hidden');
             paint();
         };
 

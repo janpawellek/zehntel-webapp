@@ -174,7 +174,11 @@
                     <!-- PANEL SPEND -->
                     <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="spend-panel">
                         <div class="panel-body">
-                            <h1><span class="spend-transactions-sum onLogoffClearContent"></span> zum Ausgeben</h1>
+                            <h1>
+                                <span class="onEmptyShow">Tracke dein Budget</span>
+                                <span class="spend-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                zum Ausgeben
+                            </h1>
                             <p>Für alles, was du dir so zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jede Currywurst einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
                             <div class="form-group">
                                 Memo an mich selbst: Ich brauche pro Monat zum Ausgeben ungefähr:
@@ -191,8 +195,11 @@
                                     <a href="#" id="spend-memo-changeit">ändern</a>
                                 </span>
                             </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Noch hast du kein Budget festgelegt. Trage jetzt einen aktuellen Verdienst oben ein um zu starten!
+                            </div>
                         </div>
-                        <table class="table table-striped">
+                        <table class="table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
                                     <th>Wann?</th>

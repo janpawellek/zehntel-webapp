@@ -19,6 +19,8 @@
             // set page layout to logged out state
             $('.onLogoffShow').removeClass('hidden');
             $('.onLogoffHide').addClass('hidden');
+            $('.onEmptyShow').removeClass('hidden');
+            $('.onEmptyHide').addClass('hidden');
 
             // important: clear everything in the DOM from the previously logged in user
             $('.onLogoffClearContent').html('');
