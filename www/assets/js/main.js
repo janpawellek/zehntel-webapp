@@ -245,7 +245,11 @@
     // execute when DOM is ready
     $(function () {
         var blinkHand,
-            spendApp;
+            spendApp,
+            contractsApp,
+            saveApp,
+            investApp,
+            giveApp;
 
         // enable autoNumeric to help entering currency data
         $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
@@ -342,5 +346,9 @@
 
         // create apps
         spendApp = new App('spend');
+        contractsApp = new App('contracts');
+        saveApp = new App('save');
+        investApp = new App('invest');
+        giveApp = new App('give');
     });
 }());

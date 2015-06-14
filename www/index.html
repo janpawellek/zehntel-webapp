@@ -212,7 +212,7 @@
                                 <tr>
                                     <td>
                                         <div class="form-group">
-                                            <label class="sr-only" for="spendInputDate">Wann?</label>
+                                            <label class="sr-only" for="spend-input-date">Wann?</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="spend-input-date">
                                             </div>
@@ -220,7 +220,7 @@
                                     </td>
                                     <td>
                                         <div class="form-group">
-                                            <label class="sr-only" for="spendInputSubject">Wofür?</label>
+                                            <label class="sr-only" for="spend-input-subject">Wofür?</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-subject" placeholder="Wofür?">
                                             </div>
@@ -228,7 +228,7 @@
                                     </td>
                                     <td>
                                         <div class="form-group">
-                                            <label class="sr-only" for="spendInputAmount">Wieviel?</label>
+                                            <label class="sr-only" for="spend-input-amount">Wieviel?</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-input-amount" placeholder="0,00 €">
                                             </div>
@@ -239,10 +239,283 @@
                             </tbody>
                         </table>
                     </form>
-                    <div role="tabpanel" class="tab-pane panel panel-default" id="contracts-panel"><div class="panel-body">Tab 2</div></div>
-                    <div role="tabpanel" class="tab-pane panel panel-default" id="save-panel"><div class="panel-body">Tab 3</div></div>
-                    <div role="tabpanel" class="tab-pane panel panel-default" id="invest-panel"><div class="panel-body">Tab 4</div></div>
-                    <div role="tabpanel" class="tab-pane panel panel-default" id="give-panel"><div class="panel-body">Tab 5</div></div>
+
+                    <!-- PANEL CONTRACTS -->
+                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="contracts-panel">
+                        <div class="panel-body">
+                            <h1>
+                                <span class="onEmptyShow">Tracke alle Ausgaben</span>
+                                <span class="contracts-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                für Verträge
+                            </h1>
+                            <p>Für alle regelmäßigen Zahlungen: Miete, Handy, Internet, Gebühren. Tipp: Rechne jährliche oder halbjährliche Ausgaben auf einen Monat herunter und summiere alles zusammen, um nicht böse überrascht zu werden.</p>
+                            <div class="form-group">
+                                Memo an mich selbst: Ich brauche pro Monat für regelmäßige Zahlungen ungefähr:
+                                <span id="contracts-memo-change" class="onLogoffShow">
+                                    <label class="sr-only" for="contracts-memo">Betrag (in Euro)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="contracts-memo" placeholder="0,00 €">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                                    <!-- TODO <a href="#">(Woher weiß ich das?)</a> -->
+                                </span>
+                                <span id="contracts-memo-show" class="hidden onLogoffHide">
+                                    <strong id="contracts-memo-show-amount" class="onLogoffClearContent"></strong>
+                                    <a href="#" id="contracts-memo-changeit">ändern</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Noch hast du kein Budget festgelegt. Trage jetzt einen aktuellen Verdienst oben ein um zu starten!
+                            </div>
+                        </div>
+                        <table class="table table-striped onEmptyHide hidden">
+                            <thead>
+                                <tr>
+                                    <th>Wann?</th>
+                                    <th>Wofür?</th>
+                                    <th>Wieviel?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contracts-transactions" class="onLogoffClearContent"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="contracts-input-date">Wann?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="contracts-input-date">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="contracts-input-subject">Wofür?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="contracts-input-subject" placeholder="Wofür?">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="contracts-input-amount">Wieviel?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="contracts-input-amount" placeholder="0,00 €">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
+                    <!-- PANEL SAVE -->
+                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="save-panel">
+                        <div class="panel-body">
+                            <h1>
+                                <span class="onEmptyShow">Schnell was zusammen</span>
+                                <span class="save-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                gespart!
+                            </h1>
+                            <p>Gönn dir! Es ist viel intelligenter, für eine Sache vorher zu sparen, als nach dem Kauf monatelang gebunden zu sein. Such dir einen Traum heraus und komme ihm jeden Monat einen Schritt näher.</p>
+                            <div class="form-group">
+                                Memo an mich selbst: Ich möchte jeden Monat so viel zurücklegen:
+                                <span id="save-memo-change" class="onLogoffShow">
+                                    <label class="sr-only" for="save-memo">Betrag (in Euro)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="save-memo" placeholder="0,00 €">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                                    <!-- TODO <a href="#">(Woher weiß ich das?)</a> -->
+                                </span>
+                                <span id="save-memo-show" class="hidden onLogoffHide">
+                                    <strong id="save-memo-show-amount" class="onLogoffClearContent"></strong>
+                                    <a href="#" id="save-memo-changeit">ändern</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Noch hast du kein Budget festgelegt. Trage jetzt einen aktuellen Verdienst oben ein um zu starten!
+                            </div>
+                        </div>
+                        <table class="table table-striped onEmptyHide hidden">
+                            <thead>
+                                <tr>
+                                    <th>Wann?</th>
+                                    <th>Wofür?</th>
+                                    <th>Wieviel?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="save-transactions" class="onLogoffClearContent"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="save-input-date">Wann?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="save-input-date">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="save-input-subject">Wofür?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="save-input-subject" placeholder="Wofür?">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="save-input-amount">Wieviel?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="save-input-amount" placeholder="0,00 €">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
+                    <!-- PANEL INVEST -->
+                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="invest-panel">
+                        <div class="panel-body">
+                            <h1>
+                                <span class="onEmptyShow">Tracke dein Budget</span>
+                                <span class="invest-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                für große Projekte
+                            </h1>
+                            <p>Mit Geld kann man viele sinnvolle Dinge tun. Ob du in eine Ausbildung investieren möchtest oder in langfristige Anlagen: Auch ein kleiner Betrag pro Monat macht einen Unterschied.</p>
+                            <div class="form-group">
+                                Memo an mich selbst: Ich möchte pro Monat so viel investieren:
+                                <span id="invest-memo-change" class="onLogoffShow">
+                                    <label class="sr-only" for="invest-memo">Betrag (in Euro)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-memo" placeholder="0,00 €">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                                    <!-- TODO <a href="#">(Woher weiß ich das?)</a> -->
+                                </span>
+                                <span id="invest-memo-show" class="hidden onLogoffHide">
+                                    <strong id="invest-memo-show-amount" class="onLogoffClearContent"></strong>
+                                    <a href="#" id="invest-memo-changeit">ändern</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Noch hast du kein Budget festgelegt. Trage jetzt einen aktuellen Verdienst oben ein um zu starten!
+                            </div>
+                        </div>
+                        <table class="table table-striped onEmptyHide hidden">
+                            <thead>
+                                <tr>
+                                    <th>Wann?</th>
+                                    <th>Wofür?</th>
+                                    <th>Wieviel?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invest-transactions" class="onLogoffClearContent"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="invest-input-date">Wann?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="invest-input-date">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="invest-input-subject">Wofür?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="invest-input-subject" placeholder="Wofür?">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="invest-input-amount">Wieviel?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-input-amount" placeholder="0,00 €">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
+                    <!-- PANEL GIVE -->
+                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="give-panel">
+                        <div class="panel-body">
+                            <h1>
+                                <span class="onEmptyShow">Dein Beitrag</span>
+                                <span class="give-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                für gute Zwecke
+                            </h1>
+                            <p>Noch nie gemacht? Versuche einmal, ein bisschen Geld zu geben für eine Sache, an die du glaubst. Das macht dich glücklich und die Welt ein bisschen besser. Monat für Monat.</p>
+                            <div class="form-group">
+                                Memo an mich selbst: Ich möchte pro Monat so viel Geld spenden:
+                                <span id="give-memo-change" class="onLogoffShow">
+                                    <label class="sr-only" for="give-memo">Betrag (in Euro)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-memo" placeholder="0,00 €">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                                    <!-- TODO <a href="#">(Woher weiß ich das?)</a> -->
+                                </span>
+                                <span id="give-memo-show" class="hidden onLogoffHide">
+                                    <strong id="give-memo-show-amount" class="onLogoffClearContent"></strong>
+                                    <a href="#" id="give-memo-changeit">ändern</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Noch hast du kein Budget festgelegt. Trage jetzt einen aktuellen Verdienst oben ein um zu starten!
+                            </div>
+                        </div>
+                        <table class="table table-striped onEmptyHide hidden">
+                            <thead>
+                                <tr>
+                                    <th>Wann?</th>
+                                    <th>Wofür?</th>
+                                    <th>Wieviel?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="give-transactions" class="onLogoffClearContent"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-date">Wann?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="give-input-date">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-subject">Wofür?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Wofür?">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-amount">Wieviel?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-input-amount" placeholder="0,00 €">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
                 </div>
             </div>
         </div>
