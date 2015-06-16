@@ -86,13 +86,13 @@
             $('.' + $el.attr('id') + '-sum').html(roundedsum + ' €');
             if (roundedsum <= 0) {
                 $('.' + $el.attr('id') + '-sum').addClass('negative-sum');
+            } else {
+                $('.' + $el.attr('id') + '-sum').removeClass('negative-sum');
             }
         }
 
         this.add = function (transaction) {
             collection.push(transaction);
-            $('.onEmptyShow').addClass('hidden');
-            $('.onEmptyHide').removeClass('hidden');
             paint();
         };
 
@@ -121,16 +121,22 @@
     App = function (basename) {
         this.basename = basename;
         var transactions = new Transactions($('#' + this.basename + '-transactions')),
-            memo;
+            memo,
+            // helper function to toggle onEmpty classes
+            addTransaction = function (transaction) {
+                $('#' + basename + '-panel .onEmptyShow').addClass('hidden');
+                $('#' + basename + '-panel .onEmptyHide').removeClass('hidden');
+                transactions.add(transaction);
+            };
 
         // initial load of all transactions from the store
         hoodie.store.findAll(this.basename + 'item').then(function (items) {
-            items.forEach(transactions.add);
+            items.forEach(addTransaction);
         });
         this.transactions = transactions;
 
         // when a transaction changes, update the UI
-        hoodie.store.on(this.basename + 'item:add', this.transactions.add);
+        hoodie.store.on(this.basename + 'item:add', addTransaction);
         hoodie.store.on(this.basename + 'item:update', this.transactions.update);
         hoodie.store.on(this.basename + 'item:remove', this.transactions.remove);
         // clear items when user logs out
@@ -139,32 +145,32 @@
         // load the "memo to myself"
         hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
             memo = item;
-            $('#spend-memo-change').addClass('hidden');
-            $('#spend-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
-            $('#spend-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
-            $('#spend-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
-            $('#spend-memo').autoNumeric('set', escapeHtml(item.amount));
-            $('#spend-memo-show').removeClass('hidden');
+            $('#' + basename + '-memo-change').addClass('hidden');
+            $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
+            $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount));
+            $('#' + basename + '-memo-show').removeClass('hidden');
         });
         this.memo = memo;
 
         // when memo changes, update the UI
         this.updateMemo = function (item) {
-            $('#spend-memo-change').addClass('hidden');
-            $('#spend-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
-            $('#spend-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
-            $('#spend-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
-            $('#spend-memo').autoNumeric('set', escapeHtml(item.amount));
-            $('#spend-memo-show').removeClass('hidden');
+            $('#' + basename + '-memo-change').addClass('hidden');
+            $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(item.amount));
+            $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount));
+            $('#' + basename + '-memo-show').removeClass('hidden');
         };
         hoodie.store.on(this.basename + 'memo:add', this.updateMemo);
         hoodie.store.on(this.basename + 'memo:update', this.updateMemo);
 
         // handle click on change memo link
-        $('#spend-memo-changeit').on('click', function (event) {
+        $('#' + this.basename + '-memo-changeit').on('click', function (event) {
             event.preventDefault();
-            $('#spend-memo-change').removeClass('hidden');
-            $('#spend-memo-show').addClass('hidden');
+            $('#' + basename + '-memo-change').removeClass('hidden');
+            $('#' + basename + '-memo-show').addClass('hidden');
         });
 
         // on submit
@@ -186,13 +192,13 @@
                 strAmount;
 
             // save the "memo to myself"
-            if (!$('#spend-memo-change').hasClass('hidden')) {
+            if (!$('#' + this.basename + '-memo-change').hasClass('hidden')) {
                 // TODO Handle fail case
                 hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
                     amount: strMemo
                 });
-                $('#spend-memo-change').addClass('hidden');
-                $('#spend-memo-show').removeClass('hidden');
+                $('#' + this.basename + '-memo-change').addClass('hidden');
+                $('#' + this.basename + '-memo-show').removeClass('hidden');
             }
 
             // create a new item
@@ -245,11 +251,7 @@
     // execute when DOM is ready
     $(function () {
         var blinkHand,
-            spendApp,
-            contractsApp,
-            saveApp,
-            investApp,
-            giveApp;
+            appLauncher;
 
         // enable autoNumeric to help entering currency data
         $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
@@ -298,45 +300,59 @@
             }
             strDate = valDate.toDate().toISOString();
 
+            // TODO check if sum of distributed income is equal to total income
+            // TODO fail & return if total income is not strictly positive
+            // TODO initialize autoNumeric for input fields such that no negative input is allowed
+
             // add to Hoodie store
             // TODO handle fail callback on every add
             hoodie.store.add('income', {
                 date: strDate,
                 subject: strSubject,
-                amount: strSpend
+                amount: strAmount
             }).done(function (income) {
                 incomeId = income.id;
             });
-            hoodie.store.add('spenditem', {
-                date: strDate,
-                subject: strSubject,
-                amount: strSpend,
-                income: incomeId
-            });
-            hoodie.store.add('contractsitem', {
-                date: strDate,
-                subject: strSubject,
-                amount: strContracts,
-                income: incomeId
-            });
-            hoodie.store.add('saveitem', {
-                date: strDate,
-                subject: strSubject,
-                amount: strSave,
-                income: incomeId
-            });
-            hoodie.store.add('investitem', {
-                date: strDate,
-                subject: strSubject,
-                amount: strInvest,
-                income: incomeId
-            });
-            hoodie.store.add('giveitem', {
-                date: strDate,
-                subject: strSubject,
-                amount: strGive,
-                income: incomeId
-            });
+            if (strSpend > 0) {
+                hoodie.store.add('spenditem', {
+                    date: strDate,
+                    subject: strSubject,
+                    amount: strSpend,
+                    income: incomeId
+                });
+            }
+            if (strContracts > 0) {
+                hoodie.store.add('contractsitem', {
+                    date: strDate,
+                    subject: strSubject,
+                    amount: strContracts,
+                    income: incomeId
+                });
+            }
+            if (strSave > 0) {
+                hoodie.store.add('saveitem', {
+                    date: strDate,
+                    subject: strSubject,
+                    amount: strSave,
+                    income: incomeId
+                });
+            }
+            if (strInvest > 0) {
+                hoodie.store.add('investitem', {
+                    date: strDate,
+                    subject: strSubject,
+                    amount: strInvest,
+                    income: incomeId
+                });
+            }
+            if (strGive > 0) {
+                hoodie.store.add('giveitem', {
+                    date: strDate,
+                    subject: strSubject,
+                    amount: strGive,
+                    income: incomeId
+                });
+            }
 
             // success! reset input fields
             $('.income-input').val('');
@@ -345,10 +361,18 @@
         });
 
         // create apps
-        spendApp = new App('spend');
-        contractsApp = new App('contracts');
-        saveApp = new App('save');
-        investApp = new App('invest');
-        giveApp = new App('give');
+        appLauncher = function () {
+            window.console.log('app launcher');
+            var spendApp = new App('spend'),
+                contractsApp = new App('contracts'),
+                saveApp = new App('save'),
+                investApp = new App('invest'),
+                giveApp = new App('give');
+        };
+
+        appLauncher();
+        // TODO how to handle reauthenticated event?
+        // TODO this does not work yet
+        hoodie.account.on('signup signin signout', appLauncher);
     });
 }());
