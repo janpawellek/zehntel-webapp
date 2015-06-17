@@ -122,17 +122,25 @@
         this.basename = basename;
         var transactions = new Transactions($('#' + this.basename + '-transactions')),
             memo,
+
             // helper function to toggle onEmpty classes
             addTransaction = function (transaction) {
                 $('#' + basename + '-panel .onEmptyShow').addClass('hidden');
                 $('#' + basename + '-panel .onEmptyHide').removeClass('hidden');
+                $('#' + basename + '-tab .onEmptyShow').addClass('hidden');
+                $('#' + basename + '-tab .onEmptyHide').removeClass('hidden');
                 transactions.add(transaction);
+            },
+
+            // helper function to load all transactions from the store
+            loadTransactions = function () {
+                hoodie.store.findAll(basename + 'item').then(function (items) {
+                    items.forEach(addTransaction);
+                });
             };
 
         // initial load of all transactions from the store
-        hoodie.store.findAll(this.basename + 'item').then(function (items) {
-            items.forEach(addTransaction);
-        });
+        loadTransactions();
         this.transactions = transactions;
 
         // when a transaction changes, update the UI
@@ -192,7 +200,7 @@
                 strAmount;
 
             // save the "memo to myself"
-            if (!$('#' + this.basename + '-memo-change').hasClass('hidden')) {
+            if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
                 // TODO Handle fail case
                 hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
                     amount: strMemo
@@ -247,11 +255,77 @@
         });
     };
 
+    // ACCOUNT FUNCTIONALITY (LOGIN/LOGOUT) -----------------------------------
+    function setLoggedIn(state) {
+        if (state) {
+            // set page layout to logged in state
+            $('.onLoginClearVal').val('');
+            $('.onLoginHide').addClass('hidden');
+            $('.onLoginShow').removeClass('hidden');
+
+            // hide login dialog and show user name
+            $('#loginModal').modal('hide');
+            $('.hoodieUsername').html(hoodie.account.username);
+        } else {
+            // set page layout to logged out state
+            $('.onLogoffShow').removeClass('hidden');
+            $('.onLogoffHide').addClass('hidden');
+            $('.onEmptyShow').removeClass('hidden');
+            $('.onEmptyHide').addClass('hidden');
+
+            // important: clear everything in the DOM from the previously logged in user
+            $('.onLogoffClearContent').html('');
+            $('.onLogoffClearVal').val('');
+
+            // insert today's date as default
+            $('.insertToday').val(moment().format('DD.MM.YYYY'));
+        }
+    }
+
+    // LOGIN FORM SUBMIT
+    $('#loginForm').submit(function (event) {
+        event.preventDefault();
+        var username = $('#loginName').val(),
+            password = $('#loginPassword').val();
+
+        hoodie.account.signIn(username, password)
+            .done(
+                function () {
+                    // login successful
+                    setLoggedIn(true);
+                }
+            ).fail(
+                function () {
+                    // login failed
+                    $('#loginFailed').removeClass('hidden');
+                    setLoggedIn(false);
+                }
+            );
+    });
+
+    $('#logoutButton').click(function () {
+        hoodie.account.signOut();
+        setLoggedIn(false);
+    });
+
+    hoodie.account.on('error:unauthenticated signout', function () {
+        setLoggedIn(false);
+    });
+
+    hoodie.account.on('signin signup', function () {
+        setLoggedIn(true);
+    });
+
     // MAIN FUNCTION --------------------------------
     // execute when DOM is ready
     $(function () {
         var blinkHand,
-            appLauncher;
+            appLauncher,
+            spendApp,
+            contractsApp,
+            saveApp,
+            investApp,
+            giveApp;
 
         // enable autoNumeric to help entering currency data
         $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
@@ -361,18 +435,17 @@
         });
 
         // create apps
-        appLauncher = function () {
-            window.console.log('app launcher');
-            var spendApp = new App('spend'),
-                contractsApp = new App('contracts'),
-                saveApp = new App('save'),
-                investApp = new App('invest'),
-                giveApp = new App('give');
-        };
+        spendApp = new App('spend');
+        contractsApp = new App('contracts');
+        saveApp = new App('save');
+        investApp = new App('invest');
+        giveApp = new App('give');
 
-        appLauncher();
-        // TODO how to handle reauthenticated event?
-        // TODO this does not work yet
-        hoodie.account.on('signup signin signout', appLauncher);
+        // set initial login/logout state
+        if (hoodie.account.username === undefined) {
+            setLoggedIn(false);
+        } else {
+            setLoggedIn(true);
+        }
     });
 }());

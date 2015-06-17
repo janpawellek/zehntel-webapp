@@ -142,29 +142,29 @@
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs nav-justified" role="tablist">
                     <li role="presentation" class="active">
-                        <a href="#spend-panel" aria-controls="spend-panel" role="tab" data-toggle="tab">Ausgeben
-                            <span class="badge spend-transactions-sum onLogoffClearContent"></span>
+                        <a id="spend-tab" href="#spend-panel" aria-controls="spend-panel" role="tab" data-toggle="tab">Ausgeben
+                            <span class="badge spend-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
                     <li role="presentation">
-                        <a href="#contracts-panel" aria-controls="contracts-panel" role="tab" data-toggle="tab">Verträge
-                            <span class="badge contracts-transactions-sum onLogoffClearContent"></span>
+                        <a id="contracts-tab" href="#contracts-panel" aria-controls="contracts-panel" role="tab" data-toggle="tab">Verträge
+                            <span class="badge contracts-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
                     <li role="presentation">
-                        <a href="#save-panel" aria-controls="save-panel" role="tab" data-toggle="tab">Sparen
-                            <span class="badge save-transactions-sum onLogoffClearContent"></span>
+                        <a id="save-tab" href="#save-panel" aria-controls="save-panel" role="tab" data-toggle="tab">Sparen
+                            <span class="badge save-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
                     <li role="presentation">
-                        <a href="#invest-panel" aria-controls="invest-panel" role="tab" data-toggle="tab">Investieren
-                            <span class="badge invest-transactions-sum onLogoffClearContent"></span>
+                        <a id="invest-tab" href="#invest-panel" aria-controls="invest-panel" role="tab" data-toggle="tab">Investieren
+                            <span class="badge invest-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
                     <li role="presentation">
-                        <a href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab">
+                        <a id="give-tab" href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab">
                             <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Geben
-                            <span class="badge give-transactions-sum onLogoffClearContent"></span>
+                            <span class="badge give-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
                 </ul>
@@ -525,6 +525,5 @@
         <script src="assets/js/moment.min.js"></script>
         <script src="/_api/_files/hoodie.js"></script>
         <script src="assets/js/main.js"></script>
-        <script src="assets/js/account.js"></script>
     </body>
 </html>
