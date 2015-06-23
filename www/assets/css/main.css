@@ -3,6 +3,10 @@
   outline: none;
 }
 
+.navbar-brand {
+  font-family: 'Pacifico', cursive;
+}
+
 .tab-pane.panel {
   border-top: 0px;
   border-top-left-radius: 0px;
