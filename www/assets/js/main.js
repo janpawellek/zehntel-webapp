@@ -245,7 +245,7 @@
                     subject: strSubject,
                     amount: strAmount
                 });
-                inputDate.val('');
+                inputDate.val(moment().format('DD.MM.YYYY'));
                 inputSubject.val('');
                 inputAmount.val('');
 
