@@ -2,7 +2,7 @@
 (function () {
     "use strict";
     var hoodie,
-        App,
+        Piggybank,
         Transactions;
 
     // initialize Hoodie
@@ -116,9 +116,9 @@
         };
     };
 
-    // APP ------------------------------------------
-    // Generic class for a Whyllet App
-    App = function (basename) {
+    // PIGGYBANK ------------------------------------------
+    // Generic class for a Zehntel Piggybank
+    Piggybank = function (basename) {
         this.basename = basename;
         var transactions = new Transactions($('#' + this.basename + '-transactions')),
             memo,
@@ -320,12 +320,11 @@
     // execute when DOM is ready
     $(function () {
         var blinkHand,
-            appLauncher,
-            spendApp,
-            contractsApp,
-            saveApp,
-            investApp,
-            giveApp;
+            spendPiggy,
+            contractsPiggy,
+            savePiggy,
+            investPiggy,
+            givePiggy;
 
         // enable autoNumeric to help entering currency data
         $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
@@ -434,12 +433,12 @@
             $('#income-dist-div').addClass('hidden');
         });
 
-        // create apps
-        spendApp = new App('spend');
-        contractsApp = new App('contracts');
-        saveApp = new App('save');
-        investApp = new App('invest');
-        giveApp = new App('give');
+        // create piggys
+        spendPiggy = new Piggybank('spend');
+        contractsPiggy = new Piggybank('contracts');
+        savePiggy = new Piggybank('save');
+        investPiggy = new Piggybank('invest');
+        givePiggy = new Piggybank('give');
 
         // set initial login/logout state
         if (hoodie.account.username === undefined) {

@@ -1,6 +1,10 @@
-# Whyllet
+# Zehntel-Webapp
 
-Finance management made easy and fun.
+Web application for Zehntel finance management.
+
+## Installation
+
+...
 
 ## Start
 
