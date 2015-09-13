@@ -1,34 +1,41 @@
 
 .nav-tabs > .active > a, .nav-tabs > .active > a:hover {
-  outline: none;
+    outline: none;
 }
 
 .navbar-brand {
-  font-family: 'Pacifico', cursive;
+    font-family: 'Fredericka the Great', cursive;
+    font-size: 2em;
+}
+
+.navbar-brand-extension {
+    font-size: 0.8em;
+    margin-left: 0.1em;
+    color: #93C54B;
 }
 
 .tab-pane.panel {
-  border-top: 0px;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
+    border-top: 0px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
 }
 
 .negative-sum.badge {
-  background-color: #D9534F;
+    background-color: #D9534F;
 }
 
 h1 > .negative-sum {
-  color: #D9534F;
+    color: #D9534F;
 }
 
 #income-hand {
-  padding: 0px 5px;
+    padding: 0px 5px;
 }
 
 #income-dist-form h1 {
-  font-size: 140%;
-  margin-bottom: 20px;
-  margin-left: 20px;
+    font-size: 140%;
+    margin-bottom: 20px;
+    margin-left: 20px;
 }
 
 .voffset  { margin-top: 2px; }
