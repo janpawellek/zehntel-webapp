@@ -14,6 +14,14 @@
     color: #93C54B;
 }
 
+.connectionOnline {
+    color: #93C54B;
+}
+
+.connectionOffline {
+    color: #D9534F;
+}
+
 .tab-pane.panel {
     border-top: 0px;
     border-top-left-radius: 0px;

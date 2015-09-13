@@ -320,6 +320,7 @@
     // execute when DOM is ready
     $(function () {
         var blinkHand,
+            connectionCheck,
             spendPiggy,
             contractsPiggy,
             savePiggy,
@@ -331,6 +332,23 @@
 
         // insert today's date as default
         $('.insertToday').val(moment().format('DD.MM.YYYY'));
+
+        // initialize the connection checker
+        connectionCheck = function () {
+            setTimeout(function () {
+                hoodie.checkConnection()
+                    .done(function () {
+                        $('.connectionOnline').removeClass('hidden');
+                        $('.connectionOffline').addClass('hidden');
+                    })
+                    .fail(function () {
+                        $('.connectionOnline').addClass('hidden');
+                        $('.connectionOffline').removeClass('hidden');
+                    });
+                connectionCheck();
+            }, 1000);
+        };
+        connectionCheck();
 
         // INCOME INPUT -----------------------------
         // let the income hand blink
