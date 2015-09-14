@@ -26,13 +26,24 @@
                         <!-- TODO <li><a href="#">Was ist das?</a></li> -->
                     </ul>
                     <div class="navbar-right">
-                        <span class="connectionOnline hidden glyphicon glyphicon-ok" aria-hidden="true"></span>
-                        <span class="connectionOffline hidden glyphicon glyphicon-remove" aria-hidden="true"></span>
-                        <p class="navbar-text onLoginShow onLogoffHide hidden" id="userText">
-                            Zehntel.org für <span class="hoodieUsername onLogoffClearContent">dich</span>
-                        </p>
-                        <button type="button" id="loginButton" class="btn btn-default navbar-btn onLoginHide onLogoffShow" data-toggle="modal" data-target="#loginModal">Anmelden</button>
-                        <button type="button" id="logoutButton" class="btn btn-default navbar-btn onLoginShow onLogoffHide hidden">Abmelden</button>
+                        <span class="onHoodieReadyHide navbar-text">
+                            Bin gleich soweit...
+                        </span>
+                        <div class="onHoodieReadyShow hidden">
+                            <span class="onLoginShow onLogoffHide hidden">
+                                <span class="connectionOnline green-tooltip hidden" data-toggle="tooltip" data-placement="bottom" title="Du bist online. Alle Daten werden sicher auf dem Zehntel.org-Server gespeichert.">
+                                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span><span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                                </span>
+                                <span class="connectionOffline red-tooltip hidden" data-toggle="tooltip" data-placement="bottom" title="Du bist offline. Änderungen werden auf deinem Gerät gespeichert. Sobald du wieder online bist, werden die Änderungen auf dem Zehntel.org-Server gesichert.">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span><span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                                </span>
+                            </span>
+                            <p class="navbar-text onLoginShow onLogoffHide hidden" id="userText">
+                                Hi <span class="hoodieUsername onLogoffClearContent"></span>!
+                            </p>
+                            <button type="button" id="loginButton" class="btn btn-default navbar-btn onLoginHide onLogoffShow" data-toggle="modal" data-target="#loginModal">Anmelden</button>
+                            <button type="button" id="logoutButton" class="btn btn-default navbar-btn onLoginShow onLogoffHide hidden">Abmelden</button>
+                        </div>
                     </div>
                 </div>
             </div>

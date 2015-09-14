@@ -327,6 +327,9 @@
             investPiggy,
             givePiggy;
 
+        // enable tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
         // enable autoNumeric to help entering currency data
         $('.autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
 
@@ -464,5 +467,8 @@
         } else {
             setLoggedIn(true);
         }
+
+        $('.onHoodieReadyHide').addClass('hidden');
+        $('.onHoodieReadyShow').removeClass('hidden');
     });
 }());
