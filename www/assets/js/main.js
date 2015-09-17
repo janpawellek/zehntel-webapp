@@ -54,10 +54,10 @@
                 curamountid = $el.attr('id') + '-amount-' + collection[i].id;
                 $el.append(
                     '<tr data-id="' + collection[i].id + '">' +
-                        '<td>' + escapeHtml(moment(new Date(collection[i].date)).format('DD.MM.YYYY')) + '</td>' +
-                        '<td>' + escapeHtml(collection[i].subject) + '</td>' +
-                        '<td class="autonumeric" id="' + curamountid + '">' + escapeHtml(collection[i].amount) + '</td>' +
-                        '<td style="padding: 5px;">' +
+                        '<td class="transaction-date">' + escapeHtml(moment(new Date(collection[i].date)).format('DD.MM.YYYY')) + '</td>' +
+                        '<td class="transaction-subject">' + escapeHtml(collection[i].subject) + '</td>' +
+                        '<td class="transaction-amount autonumeric" id="' + curamountid + '">' + escapeHtml(collection[i].amount) + '</td>' +
+                        '<td class="transaction-dropdown" style="padding: 5px;">' +
                         '<div class="btn-group">' +
                         '<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                         '<span class="caret"></span>' +
@@ -87,9 +87,73 @@
             $('.do-edit-transaction').click(function (event) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                var toeditid = $(event.target).attr('data-edit');
-                // TODO provide option to edit item
-                window.alert('TODO: edit ' + toeditid);
+                var toeditid = $(event.target).attr('data-edit'),
+                    toeditdate = $('tr[data-id=' + toeditid + '] .transaction-date').text(),
+                    toeditsubject = $('tr[data-id=' + toeditid + '] .transaction-subject').text(),
+                    toeditamount = $('tr[data-id=' + toeditid + '] .transaction-amount').text();
+
+                // create inputs to edit item
+                $('tr[data-id=' + toeditid + '] .transaction-date').html('');
+                $('tr[data-id=' + toeditid + '] .transaction-date').append(
+                    '<input type="text" class="form-control input-sm onLogoffClearVal" class="edit-input-date" data-transaction="' + toeditid + '" value="' + toeditdate + '">'
+                );
+                $('tr[data-id=' + toeditid + '] .transaction-subject').html('');
+                $('tr[data-id=' + toeditid + '] .transaction-subject').append(
+                    '<input type="text" class="form-control input-sm onLogoffClearVal" class="edit-input-subject" data-transaction="' + toeditid + '" value="' + toeditsubject + '">'
+                );
+                $('tr[data-id=' + toeditid + '] .transaction-amount').html('');
+                $('tr[data-id=' + toeditid + '] .transaction-amount').append(
+                    '<input type="text" class="form-control input-sm onLogoffClearVal autonumeric" class="edit-input-amount" data-transaction="' + toeditid + '">'
+                );
+                $('tr[data-id=' + toeditid + '] .transaction-amount input').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+                $('tr[data-id=' + toeditid + '] .transaction-amount input').autoNumeric('set', escapeHtml(toeditamount.replace(' €', '').replace(',', '.')));
+                $('tr[data-id=' + toeditid + '] .transaction-dropdown').html('');
+                $('tr[data-id=' + toeditid + '] .transaction-dropdown').append(
+                    '<button type="submit" class="btn btn-success btn-sm do-confirm-edit-transaction" data-transaction="' + toeditid + '">OK</button>'
+                );
+
+                // event handler to save changes
+                $('.do-confirm-edit-transaction').click(function (event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    var tosaveid = $(event.target).attr('data-transaction'),
+                        rawDate = $('tr[data-id=' + toeditid + '] .transaction-date input').val(),
+                        rawSubject = $('tr[data-id=' + toeditid + '] .transaction-subject input').val(),
+                        valDate,
+                        strDate,
+                        strAmount,
+                        strSubject;
+
+                    // 1. validate date
+                    valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']);
+                    if (!valDate.isValid) {
+                        // TODO handle invalid date, error message & return without saving
+                        window.console.log('invalid date');
+                        return;
+                    }
+                    strDate = valDate.toDate().toISOString();
+
+                    // 2. validate subject
+                    strSubject = rawSubject;
+
+                    // 3. validate amount
+                    strAmount = $('tr[data-id=' + toeditid + '] .transaction-amount input').autoNumeric('get');
+                    if (!strAmount || strAmount === 0) {
+                        // TODO handle empty amount field
+                        window.console.log('empty amount');
+                        return;
+                    }
+
+                    hoodie.store.update($el.attr('id').replace('-transactions', '') + 'item', tosaveid, {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strAmount
+                    })
+                        .fail(function (error) {
+                            // TODO handle update error
+                            window.alert('Update error: ' + error.message);
+                        });
+                });
             });
             $('.do-delete-transaction').click(function (event) {
                 event.preventDefault();
