@@ -57,6 +57,18 @@
                         '<td>' + escapeHtml(moment(new Date(collection[i].date)).format('DD.MM.YYYY')) + '</td>' +
                         '<td>' + escapeHtml(collection[i].subject) + '</td>' +
                         '<td class="autonumeric" id="' + curamountid + '">' + escapeHtml(collection[i].amount) + '</td>' +
+                        '<td style="padding: 5px;">' +
+                        '<div class="btn-group">' +
+                        '<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                        '<span class="caret"></span>' +
+                        '<span class="sr-only">Menü öffnen</span>' +
+                        '</button>' +
+                        '<ul class="dropdown-menu dropdown-menu-right">' +
+                        '<li><a href="#" class="do-edit-transaction" data-edit="' + collection[i].id + '">Eintrag ändern</a></li>' +
+                        '<li><a href="#" class="do-delete-transaction" data-delete="' + collection[i].id + '">Eintrag löschen</a></li>' +
+                        '</ul>' +
+                        '</div>' +
+                        '</td>' +
                         '</tr>'
                 );
                 try {
@@ -71,12 +83,33 @@
                 }
             }
 
+            // register event handler to edit and delete items
+            $('.do-edit-transaction').click(function (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                var toeditid = $(event.target).attr('data-edit');
+                // TODO provide option to edit item
+                window.alert('TODO: edit ' + toeditid);
+            });
+            $('.do-delete-transaction').click(function (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                var todeleteid = $(event.target).attr('data-delete');
+                // TODO show confirmation dialog in advance
+                hoodie.store.remove($el.attr('id').replace('-transactions', '') + 'item', todeleteid)
+                    .fail(function (error) {
+                        // TODO handle deletion error
+                        window.alert('Deletion error: ' + error.message);
+                    });
+            });
+
             // add final sum row to table
             $el.append(
                 '<tr>' +
                     '<td></td>' +
-                    '<td><b>Summa summarum:</b></td>' +
+                    '<td><b>Verfügbar in diesem Sparschwein:</b></td>' +
                     '<td style="font-weight: bold;" class="autonumeric" id="' + $el.attr('id') + '-sum-row' + '"><b>' + sum + '</b></td>' +
+                    '<td></td>' +
                     '</tr>'
             );
             $('#' + $el.attr('id') + '-sum-row').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
