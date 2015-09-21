@@ -461,6 +461,63 @@
         $('#income-new-form').on('submit', function (event) {
             event.preventDefault();
             $('#income-dist-div').removeClass('hidden');
+
+            // check if there is a previous item with the same amount - if so, fill all input forms with the last values
+            hoodie.store.findAll(function (object) {
+                return object.type === 'income' && object.amount === $('#income-amount').autoNumeric('get');
+            }).done(function (sameAmountItems) {
+                if (sameAmountItems.length > 0) {
+                    // fetch the ID of the latest item with this amount
+                    var lastid = sameAmountItems.sort(function (a, b) {
+                        return b.createdAt - a.createdAt;
+                    })[0].id;
+
+                    // set income-spend field
+                    hoodie.store.findAll(function (object) {
+                        return object.type === 'spenditem' && object.income === lastid;
+                    }).done(function (items) {
+                        if (items.length > 0) {
+                            $('#income-spend').autoNumeric('set', escapeHtml(items[0].amount));
+                        }
+                    });
+
+                    // set income-contracts field
+                    hoodie.store.findAll(function (object) {
+                        return object.type === 'contractsitem' && object.income === lastid;
+                    }).done(function (items) {
+                        if (items.length > 0) {
+                            $('#income-contracts').autoNumeric('set', escapeHtml(items[0].amount));
+                        }
+                    });
+
+                    // set income-save field
+                    hoodie.store.findAll(function (object) {
+                        return object.type === 'saveitem' && object.income === lastid;
+                    }).done(function (items) {
+                        if (items.length > 0) {
+                            $('#income-save').autoNumeric('set', escapeHtml(items[0].amount));
+                        }
+                    });
+
+                    // set income-invest field
+                    hoodie.store.findAll(function (object) {
+                        return object.type === 'investitem' && object.income === lastid;
+                    }).done(function (items) {
+                        if (items.length > 0) {
+                            $('#income-invest').autoNumeric('set', escapeHtml(items[0].amount));
+                        }
+                    });
+
+                    // set income-give field
+                    hoodie.store.findAll(function (object) {
+                        return object.type === 'giveitem' && object.income === lastid;
+                    }).done(function (items) {
+                        if (items.length > 0) {
+                            $('#income-give').autoNumeric('set', escapeHtml(items[0].amount));
+                        }
+                    });
+                }
+            });
         });
 
         // close distribution panel on click on the upper right x
@@ -522,52 +579,53 @@
                 amount: strAmount
             }).done(function (income) {
                 incomeId = income.id;
-            });
-            if (strSpend > 0) {
-                hoodie.store.add('spenditem', {
-                    date: strDate,
-                    subject: strSubject,
-                    amount: strSpend,
-                    income: incomeId
-                });
-            }
-            if (strContracts > 0) {
-                hoodie.store.add('contractsitem', {
-                    date: strDate,
-                    subject: strSubject,
-                    amount: strContracts,
-                    income: incomeId
-                });
-            }
-            if (strSave > 0) {
-                hoodie.store.add('saveitem', {
-                    date: strDate,
-                    subject: strSubject,
-                    amount: strSave,
-                    income: incomeId
-                });
-            }
-            if (strInvest > 0) {
-                hoodie.store.add('investitem', {
-                    date: strDate,
-                    subject: strSubject,
-                    amount: strInvest,
-                    income: incomeId
-                });
-            }
-            if (strGive > 0) {
-                hoodie.store.add('giveitem', {
-                    date: strDate,
-                    subject: strSubject,
-                    amount: strGive,
-                    income: incomeId
-                });
-            }
 
-            // success! reset input fields
-            $('.income-input').val('');
-            $('#income-date').val(moment().format('DD.MM.YYYY'));
-            $('#income-dist-div').addClass('hidden');
+                if (strSpend > 0) {
+                    hoodie.store.add('spenditem', {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strSpend,
+                        income: incomeId
+                    });
+                }
+                if (strContracts > 0) {
+                    hoodie.store.add('contractsitem', {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strContracts,
+                        income: incomeId
+                    });
+                }
+                if (strSave > 0) {
+                    hoodie.store.add('saveitem', {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strSave,
+                        income: incomeId
+                    });
+                }
+                if (strInvest > 0) {
+                    hoodie.store.add('investitem', {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strInvest,
+                        income: incomeId
+                    });
+                }
+                if (strGive > 0) {
+                    hoodie.store.add('giveitem', {
+                        date: strDate,
+                        subject: strSubject,
+                        amount: strGive,
+                        income: incomeId
+                    });
+                }
+
+                // success! reset input fields
+                $('.income-input').val('');
+                $('#income-date').val(moment().format('DD.MM.YYYY'));
+                $('#income-dist-div').addClass('hidden');
+            });
         });
 
         // create piggys
