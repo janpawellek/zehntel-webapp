@@ -3,17 +3,6 @@
     outline: none;
 }
 
-.navbar-brand {
-    font-family: 'Fredericka the Great', cursive;
-    font-size: 2em;
-}
-
-.navbar-brand-extension {
-    font-size: 0.8em;
-    margin-left: 0.1em;
-    color: #93C54B;
-}
-
 .connectionOnline {
     color: #93C54B;
 }
