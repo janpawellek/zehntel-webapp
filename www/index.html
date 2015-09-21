@@ -100,7 +100,7 @@
                 </div>
                 <div class="form-group">
                     <label class="sr-only" for="income-amount">Wieviel?</label>
-                    <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-amount" placeholder="0,00 €">
+                    <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-amount" placeholder="0,00 €">
                 </div>
                 <button type="submit" class="btn btn-default">OK</button>
             </form>
@@ -115,25 +115,25 @@
                     <div class="form-group">
                         <label for="income-spend" class="col-sm-2 control-label">Ausgeben:</label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-spend" placeholder="0,00 €">
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-spend" placeholder="0,00 €">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="income-contracts" class="col-sm-2 control-label">Verträge:</label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-contracts" placeholder="0,00 €">
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-contracts" placeholder="0,00 €">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="income-save" class="col-sm-2 control-label">Sparen:</label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-save" placeholder="0,00 €">
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-save" placeholder="0,00 €">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="income-invest" class="col-sm-2 control-label">Investieren:</label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-invest" placeholder="0,00 €">
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-invest" placeholder="0,00 €">
                         </div>
                     </div>
                     <div class="form-group">
@@ -141,12 +141,13 @@
                             <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Geben:
                         </label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control onLogoffClearVal autonumeric income-input" id="income-give" placeholder="0,00 €">
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" id="income-give" placeholder="0,00 €">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-default">Geld verteilen</button>
+                            <div><span id="income-sum-text" class="onLogoffClearContent"></span><span> sind noch übrig.</span></div>
+                            <button type="submit" class="btn btn-default voffset3">Geld verteilen</button>
                         </div>
                     </div>
                 </form>

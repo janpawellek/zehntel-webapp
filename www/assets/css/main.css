@@ -73,6 +73,15 @@ h1 > .negative-sum {
     font-size: 1em;
 }
 
+#income-sum-text:empty + span {
+    display: none;
+}
+
+#income-sum-text.negative-sum {
+    color: #D9534F;
+    font-weight: bold;
+}
+
 .voffset  { margin-top: 2px; }
 .voffset1 { margin-top: 5px; }
 .voffset2 { margin-top: 10px; }

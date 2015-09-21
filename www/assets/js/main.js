@@ -468,6 +468,25 @@
             $('#income-dist-div').addClass('hidden');
         });
 
+        // update income sum if any field gets changed
+        $('.onChangeUpdateIncomeSum').change(function (event) {
+            var strAmount = $('#income-amount').autoNumeric('get'),
+                strSpend = $('#income-spend').autoNumeric('get'),
+                strContracts = $('#income-contracts').autoNumeric('get'),
+                strSave = $('#income-save').autoNumeric('get'),
+                strInvest = $('#income-invest').autoNumeric('get'),
+                strGive = $('#income-give').autoNumeric('get'),
+                remainingSum;
+            remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive;
+            $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#income-sum-text').autoNumeric('set', escapeHtml(remainingSum));
+            if (remainingSum < -0.01) {
+                $('#income-sum-text').addClass('negative-sum');
+            } else {
+                $('#income-sum-text').removeClass('negative-sum');
+            }
+        });
+
         $('#income-dist-form').on('submit', function (event) {
             event.preventDefault();
             // fetch income distribution
