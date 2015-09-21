@@ -68,6 +68,11 @@ h1 > .negative-sum {
     margin-left: 20px;
 }
 
+.dropdown-menu > li > a {
+    text-transform: none;
+    font-size: 1em;
+}
+
 .voffset  { margin-top: 2px; }
 .voffset1 { margin-top: 5px; }
 .voffset2 { margin-top: 10px; }
