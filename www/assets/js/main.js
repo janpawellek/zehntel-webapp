@@ -23,6 +23,24 @@
         });
     }
 
+    // helper function to show the message modal
+    function messageModal(strTitle, strContent, strButton) {
+        $('#messageModalLabel').html(strTitle);
+        $('#messageModalContent').html(strContent);
+        $('#messageModalButton').html(strButton);
+        $('#messageModal').modal('show');
+    }
+    $('#messageModalButton').click(function (event) {
+        $('#messageModal').modal('hide');
+    });
+    function showHoodieError(message) {
+        messageModal('Bitte entschuldige',
+                     'Leider hat das gerade nicht funktioniert. Versuche es bitte noch einmal. Falls dieses Problem wieder auftritt, lade bitte die Seite neu.' +
+                     'Wenn das nicht hilft, wende dich bitte an <a href="mailto:team@zehntel.org">team@zehntel.org</a>. Bitte verzeihe uns die Unannehmlichkeiten.' +
+                     '<br><br>Das System meldet: <i>' + message + '</i>',
+                     'OK');
+    }
+
     // TRANSACTIONS ---------------------------------
     // Generic class for Transactions
     Transactions = function ($element) {
@@ -148,11 +166,9 @@
                         date: strDate,
                         subject: strSubject,
                         amount: strAmount
-                    })
-                        .fail(function (error) {
-                            // TODO handle update error
-                            window.alert('Update error: ' + error.message);
-                        });
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
+                    });
                 });
             });
             $('.do-delete-transaction').click(function (event) {
@@ -162,8 +178,7 @@
                 // TODO show confirmation dialog in advance
                 hoodie.store.remove($el.attr('id').replace('-transactions', '') + 'item', todeleteid)
                     .fail(function (error) {
-                        // TODO handle deletion error
-                        window.alert('Deletion error: ' + error.message);
+                        showHoodieError(error.message);
                     });
             });
 
@@ -233,6 +248,8 @@
             loadTransactions = function () {
                 hoodie.store.findAll(basename + 'item').then(function (items) {
                     items.forEach(addTransaction);
+                }).fail(function (error) {
+                    showHoodieError(error.message);
                 });
             };
 
@@ -298,9 +315,10 @@
 
             // save the "memo to myself"
             if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
-                // TODO Handle fail case
                 hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
                     amount: strMemo
+                }).fail(function (error) {
+                    showHoodieError(error.message);
                 });
                 $('#' + this.basename + '-memo-change').addClass('hidden');
                 $('#' + this.basename + '-memo-show').removeClass('hidden');
@@ -336,18 +354,16 @@
                 }
 
                 // persist new item
-                // TODO handle fail callback
                 hoodie.store.add(basename + 'item', {
                     date: strDate,
                     subject: strSubject,
                     amount: strAmount
+                }).fail(function (error) {
+                    showHoodieError(error.message);
                 });
                 inputDate.val(moment().format('DD.MM.YYYY'));
                 inputSubject.val('');
                 inputAmount.val('');
-
-                // dbs = moment('7.06.2015', ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']).toDate().toISOString();
-                // whs = moment(new Date(dbs)).format('DD.MM.YYYY');
             }
         });
     };
@@ -392,8 +408,9 @@
                     setLoggedIn(true);
                 }
             ).fail(
-                function () {
+                function (error) {
                     // login failed
+                    $('#loginFailedDetail').html(error.message);
                     $('#loginFailed').removeClass('hidden');
                     setLoggedIn(false);
                 }
@@ -401,8 +418,18 @@
     });
 
     $('#logoutButton').click(function () {
-        hoodie.account.signOut();
-        setLoggedIn(false);
+        hoodie.account.signOut()
+            .done(
+                function () {
+                    // logout successful
+                    setLoggedIn(false);
+                }
+            ).fail(
+                function (error) {
+                    // logout failed
+                    showHoodieError(error.message);
+                }
+            );
     });
 
     hoodie.account.on('error:unauthenticated signout', function () {
@@ -572,7 +599,6 @@
             // TODO initialize autoNumeric for input fields such that no negative input is allowed
 
             // add to Hoodie store
-            // TODO handle fail callback on every add
             hoodie.store.add('income', {
                 date: strDate,
                 subject: strSubject,
@@ -586,6 +612,8 @@
                         subject: strSubject,
                         amount: strSpend,
                         income: incomeId
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
                     });
                 }
                 if (strContracts > 0) {
@@ -594,6 +622,8 @@
                         subject: strSubject,
                         amount: strContracts,
                         income: incomeId
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
                     });
                 }
                 if (strSave > 0) {
@@ -602,6 +632,8 @@
                         subject: strSubject,
                         amount: strSave,
                         income: incomeId
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
                     });
                 }
                 if (strInvest > 0) {
@@ -610,6 +642,8 @@
                         subject: strSubject,
                         amount: strInvest,
                         income: incomeId
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
                     });
                 }
                 if (strGive > 0) {
@@ -618,6 +652,8 @@
                         subject: strSubject,
                         amount: strGive,
                         income: incomeId
+                    }).fail(function (error) {
+                        showHoodieError(error.message);
                     });
                 }
 
@@ -625,6 +661,8 @@
                 $('.income-input').val('');
                 $('#income-date').val(moment().format('DD.MM.YYYY'));
                 $('#income-dist-div').addClass('hidden');
+            }).fail(function (error) {
+                showHoodieError(error.message);
             });
         });
 
