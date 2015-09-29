@@ -485,6 +485,7 @@
     $(function () {
         var blinkHand,
             connectionCheck,
+            updateIncomeSum,
             spendPiggy,
             contractsPiggy,
             savePiggy,
@@ -524,9 +525,37 @@
         };
         blinkHand();
 
+        // helper function to update the percentage and the remaining amount of income
+        updateIncomeSum = function () {
+            var strAmount = $('#income-amount').autoNumeric('get'),
+                strSpend = $('#income-spend').autoNumeric('get'),
+                strContracts = $('#income-contracts').autoNumeric('get'),
+                strSave = $('#income-save').autoNumeric('get'),
+                strInvest = $('#income-invest').autoNumeric('get'),
+                strGive = $('#income-give').autoNumeric('get'),
+                remainingSum,
+                givePercentage;
+
+            remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive;
+            $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+            $('#income-sum-text').autoNumeric('set', escapeHtml(remainingSum));
+            if (remainingSum < -0.001) {
+                $('#income-sum-text').addClass('negative-sum');
+            } else {
+                $('#income-sum-text').removeClass('negative-sum');
+            }
+
+            givePercentage = (100 * strGive / strAmount).toFixed(0);
+            $('#income-give-percentage').html(givePercentage + ' %');
+        };
+
         // on submit of new income open distribution form
         $('#income-new-form').on('submit', function (event) {
             event.preventDefault();
+            if (!$('#income-amount').autoNumeric('get')) {
+                return;
+            }
+
             $('#income-dist-div').removeClass('hidden');
 
             // check if there is a previous item with the same amount - if so, fill all input forms with the last values
@@ -545,6 +574,7 @@
                     }).done(function (items) {
                         if (items.length > 0) {
                             $('#income-spend').autoNumeric('set', escapeHtml(items[0].amount));
+                            updateIncomeSum();
                         }
                     });
 
@@ -554,6 +584,7 @@
                     }).done(function (items) {
                         if (items.length > 0) {
                             $('#income-contracts').autoNumeric('set', escapeHtml(items[0].amount));
+                            updateIncomeSum();
                         }
                     });
 
@@ -563,6 +594,7 @@
                     }).done(function (items) {
                         if (items.length > 0) {
                             $('#income-save').autoNumeric('set', escapeHtml(items[0].amount));
+                            updateIncomeSum();
                         }
                     });
 
@@ -572,6 +604,7 @@
                     }).done(function (items) {
                         if (items.length > 0) {
                             $('#income-invest').autoNumeric('set', escapeHtml(items[0].amount));
+                            updateIncomeSum();
                         }
                     });
 
@@ -581,8 +614,13 @@
                     }).done(function (items) {
                         if (items.length > 0) {
                             $('#income-give').autoNumeric('set', escapeHtml(items[0].amount));
+                            updateIncomeSum();
                         }
                     });
+                } else {
+                    // calculate 10%
+                    $('#income-give').autoNumeric('set', $('#income-amount').autoNumeric('get') * 0.1);
+                    updateIncomeSum();
                 }
             });
         });
@@ -593,26 +631,12 @@
         });
 
         // update income sum if any field gets changed
-        $('.onChangeUpdateIncomeSum').change(function (event) {
-            var strAmount = $('#income-amount').autoNumeric('get'),
-                strSpend = $('#income-spend').autoNumeric('get'),
-                strContracts = $('#income-contracts').autoNumeric('get'),
-                strSave = $('#income-save').autoNumeric('get'),
-                strInvest = $('#income-invest').autoNumeric('get'),
-                strGive = $('#income-give').autoNumeric('get'),
-                remainingSum;
-            remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive;
-            $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
-            $('#income-sum-text').autoNumeric('set', escapeHtml(remainingSum));
-            if (remainingSum < -0.001) {
-                $('#income-sum-text').addClass('negative-sum');
-            } else {
-                $('#income-sum-text').removeClass('negative-sum');
-            }
-        });
+        $('.onChangeUpdateIncomeSum').change(updateIncomeSum);
 
         $('#income-dist-form').on('submit', function (event) {
             event.preventDefault();
+            updateIncomeSum();
+
             // fetch income distribution
             var rawDate = $('#income-date').val(),
                 valDate,
@@ -638,7 +662,7 @@
 
             // check if sum of distributed income is equal to total income
             if (remainingSum < -0.001) {
-                messageModal('Da stimmt etwas nicht',
+                messageModal('Das kann ich nicht machen',
                              'Du hast mehr Geld aufgeteilt, als du verdient hast. Bitte korrigiere das.',
                              'OK');
                 return;
@@ -649,8 +673,8 @@
                             'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag in dein Zehntel-Sparschwein hinzufügen?',
                             'Ja zum Zehntel addieren',
                             'Nein nochmal nachdenken',
-                            function () { $('#income-give').autoNumeric('set', remainingSum + (strGive > 0 ? parseInt(strGive, 10) : 0));
-                                          $('#income-sum-text').html(''); },
+                            function () { $('#income-give').autoNumeric('set', remainingSum + (strGive > 0.001 ? parseFloat(strGive) : 0));
+                                          updateIncomeSum(); },
                             function () { },
                             true);
                 $('#remaining-dialog-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
