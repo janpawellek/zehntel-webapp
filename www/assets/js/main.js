@@ -42,11 +42,24 @@
     }
 
     // helper function to show the dialog modal
-    function dialogModal(strTitle, strContent, strButtonOk, strButtonCancel, onOk, onCancel) {
+    function dialogModal(strTitle, strContent, strButtonOk, strButtonCancel, onOk, onCancel, isOkGreen) {
         $('#dialogModalLabel').html(strTitle);
         $('#dialogModalContent').html(strContent);
         $('#dialogModalButtonOk').html(strButtonOk);
         $('#dialogModalButtonCancel').html(strButtonCancel);
+
+        if (isOkGreen) {
+            $('#dialogModalButtonOk').removeClass('btn-danger');
+            $('#dialogModalButtonOk').addClass('btn-success');
+            $('#dialogModalButtonCancel').addClass('btn-danger');
+            $('#dialogModalButtonCancel').removeClass('btn-success');
+        } else {
+            $('#dialogModalButtonOk').addClass('btn-danger');
+            $('#dialogModalButtonOk').removeClass('btn-success');
+            $('#dialogModalButtonCancel').removeClass('btn-danger');
+            $('#dialogModalButtonCancel').addClass('btn-success');
+        }
+
         $('#dialogModal').modal('show');
 
         $('#dialogModalButtonOk').off('click');
@@ -116,8 +129,7 @@
                     curamount = $('#' + curamountid).autoNumeric('get');
                     sum += parseFloat(curamount);
                 } catch (e) {
-                    // TODO validation failed, collection[i].amount is not numeric
-                    window.console.log('non-numerical amount');
+                    // collection[i].amount is not numeric
                 }
             }
 
@@ -164,23 +176,22 @@
                         strSubject;
 
                     // 1. validate date
-                    valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']);
-                    if (!valDate.isValid) {
-                        // TODO handle invalid date, error message & return without saving
-                        window.console.log('invalid date');
+                    valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD'], true);
+                    if (!valDate.isValid()) {
+                        messageModal('Hoppla',
+                                     'Bitte gib das Datum im Format TT.MM.JJJJ an, z.B. ' + moment().format('DD.MM.YYYY') + '. Vielen Dank!',
+                                     'OK');
                         return;
                     }
                     strDate = valDate.toDate().toISOString();
 
-                    // 2. validate subject
+                    // 2. get subject
                     strSubject = rawSubject;
 
-                    // 3. validate amount
+                    // 3. get amount
                     strAmount = $('tr[data-id=' + toeditid + '] .transaction-amount input').autoNumeric('get');
-                    if (!strAmount || strAmount === 0) {
-                        // TODO handle empty amount field
-                        window.console.log('empty amount');
-                        return;
+                    if (!strAmount) {
+                        strAmount = 0.0;
                     }
 
                     hoodie.store.update(toedittype, tosaveid, {
@@ -209,7 +220,8 @@
                             function () { hoodie.store.remove(todeletetype, todeleteid)
                                 .fail(function (error) { showHoodieError(error.message); });
                             },
-                            function () { $('tr[data-id=' + todeleteid + '] .transaction-dropdown .dropdown-menu').dropdown('toggle'); });
+                            function () { $('tr[data-id=' + todeleteid + '] .transaction-dropdown .dropdown-menu').dropdown('toggle'); },
+                            false);
             });
 
             // add final sum row to table
@@ -359,24 +371,21 @@
             if (rawDate || rawSubject || rawAmount) {
 
                 // 1. validate date
-                valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']);
-                if (!valDate.isValid) {
-                    // TODO handle invalid date, error message & return without saving
-                    window.console.log('invalid date');
+                valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD'], true);
+                if (!valDate.isValid()) {
+                    messageModal('Hoppla',
+                                 'Bitte gib das Datum im Format TT.MM.JJJJ an, z.B. ' + moment().format('DD.MM.YYYY') + '. Vielen Dank!',
+                                 'OK');
                     return;
                 }
                 strDate = valDate.toDate().toISOString();
 
-                // 2. validate subject (escape HTML)
-                /*strSubject = escapeHtml(rawSubject);*/
-                // changed: don't escape anything here (but on output) to avoid escaping it twice
+                // 2. get subject
                 strSubject = rawSubject;
 
-                // 3. validate amount
+                // 3. get amount
                 strAmount = inputAmount.autoNumeric('get');
-                if (!strAmount || strAmount === 0) {
-                    // TODO handle empty amount field
-                    window.console.log('empty amount');
+                if (!strAmount) {
                     return;
                 }
                 // make it a negative value
@@ -595,7 +604,7 @@
             remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive;
             $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
             $('#income-sum-text').autoNumeric('set', escapeHtml(remainingSum));
-            if (remainingSum < -0.01) {
+            if (remainingSum < -0.001) {
                 $('#income-sum-text').addClass('negative-sum');
             } else {
                 $('#income-sum-text').removeClass('negative-sum');
@@ -615,19 +624,38 @@
                 strSave = $('#income-save').autoNumeric('get'),
                 strInvest = $('#income-invest').autoNumeric('get'),
                 strGive = $('#income-give').autoNumeric('get'),
-                incomeId = -1;
+                incomeId = -1,
+                remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive;
 
-            valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'MM/DD/YYYY']);
-            if (!valDate.isValid) {
-                // TODO handle invalid date, error message & return without saving
-                window.console.log('invalid date');
+            valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD'], true);
+            if (!valDate.isValid()) {
+                messageModal('Hoppla',
+                             'Bitte gib das Datum im Format TT.MM.JJJJ an, z.B. ' + moment().format('DD.MM.YYYY') + '. Vielen Dank!',
+                             'OK');
                 return;
             }
             strDate = valDate.toDate().toISOString();
 
-            // TODO check if sum of distributed income is equal to total income
-            // TODO fail & return if total income is not strictly positive
-            // TODO initialize autoNumeric for input fields such that no negative input is allowed
+            // check if sum of distributed income is equal to total income
+            if (remainingSum < -0.001) {
+                messageModal('Da stimmt etwas nicht',
+                             'Du hast mehr Geld aufgeteilt, als du verdient hast. Bitte korrigiere das.',
+                             'OK');
+                return;
+            }
+
+            if (remainingSum > 0.001) {
+                dialogModal('Da ist noch etwas übrig',
+                            'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag in dein Zehntel-Sparschwein hinzufügen?',
+                            'Ja zum Zehntel addieren',
+                            'Nein nochmal nachdenken',
+                            function () { $('#income-give').autoNumeric('set', remainingSum + (strGive > 0 ? parseInt(strGive, 10) : 0));
+                                          $('#income-sum-text').html(''); },
+                            function () { },
+                            true);
+                $('#remaining-dialog-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
+                return;
+            }
 
             // add to Hoodie store
             hoodie.store.add('income', {
