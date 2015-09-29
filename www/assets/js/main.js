@@ -186,7 +186,8 @@
                     hoodie.store.update(toedittype, tosaveid, {
                         date: strDate,
                         subject: strSubject,
-                        amount: strAmount
+                        amount: strAmount,
+                        updated: moment().toDate()
                     }).fail(function (error) {
                         showHoodieError(error.message);
                     });
@@ -345,7 +346,8 @@
             // save the "memo to myself"
             if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
                 hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
-                    amount: strMemo
+                    amount: strMemo,
+                    updated: moment().toDate()
                 }).fail(function (error) {
                     showHoodieError(error.message);
                 });
