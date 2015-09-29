@@ -41,6 +41,26 @@
                      'OK');
     }
 
+    // helper function to show the dialog modal
+    function dialogModal(strTitle, strContent, strButtonOk, strButtonCancel, onOk, onCancel) {
+        $('#dialogModalLabel').html(strTitle);
+        $('#dialogModalContent').html(strContent);
+        $('#dialogModalButtonOk').html(strButtonOk);
+        $('#dialogModalButtonCancel').html(strButtonCancel);
+        $('#dialogModal').modal('show');
+
+        $('#dialogModalButtonOk').off('click');
+        $('#dialogModalButtonOk').click(function (event) {
+            $('#dialogModal').modal('hide');
+            onOk();
+        });
+        $('#dialogModalButtonCancel').off('click');
+        $('#dialogModalButtonCancel').click(function (event) {
+            $('#dialogModal').modal('hide');
+            onCancel();
+        });
+    }
+
     // TRANSACTIONS ---------------------------------
     // Generic class for Transactions
     Transactions = function ($element) {
@@ -82,8 +102,8 @@
                         '<span class="sr-only">Menü öffnen</span>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-right">' +
-                        '<li><a href="#" class="do-edit-transaction" data-edit="' + collection[i].id + '">Eintrag ändern</a></li>' +
-                        '<li><a href="#" class="do-delete-transaction" data-delete="' + collection[i].id + '">Eintrag löschen</a></li>' +
+                        '<li><a href="#" class="do-edit-transaction" data-edit="' + collection[i].id + '" data-type="' + $el.attr('id').replace('-transactions', '') + 'item' + '">Eintrag ändern</a></li>' +
+                        '<li><a href="#" class="do-delete-transaction" data-delete="' + collection[i].id + '" data-type="' + $el.attr('id').replace('-transactions', '') + 'item' + '">Eintrag löschen</a></li>' +
                         '</ul>' +
                         '</div>' +
                         '</td>' +
@@ -102,10 +122,11 @@
             }
 
             // register event handler to edit and delete items
+            $('.do-edit-transaction').off('click');
             $('.do-edit-transaction').click(function (event) {
                 event.preventDefault();
-                event.stopImmediatePropagation();
                 var toeditid = $(event.target).attr('data-edit'),
+                    toedittype = $(event.target).attr('data-type'),
                     toeditdate = $('tr[data-id=' + toeditid + '] .transaction-date').text(),
                     toeditsubject = $('tr[data-id=' + toeditid + '] .transaction-subject').text(),
                     toeditamount = $('tr[data-id=' + toeditid + '] .transaction-amount').text();
@@ -131,9 +152,9 @@
                 );
 
                 // event handler to save changes
-                $('.do-confirm-edit-transaction').click(function (event) {
+                $('tr[data-id=' + toeditid + '] .do-confirm-edit-transaction').off('click');
+                $('tr[data-id=' + toeditid + '] .do-confirm-edit-transaction').click(function (event) {
                     event.preventDefault();
-                    event.stopImmediatePropagation();
                     var tosaveid = $(event.target).attr('data-transaction'),
                         rawDate = $('tr[data-id=' + toeditid + '] .transaction-date input').val(),
                         rawSubject = $('tr[data-id=' + toeditid + '] .transaction-subject input').val(),
@@ -162,7 +183,7 @@
                         return;
                     }
 
-                    hoodie.store.update($el.attr('id').replace('-transactions', '') + 'item', tosaveid, {
+                    hoodie.store.update(toedittype, tosaveid, {
                         date: strDate,
                         subject: strSubject,
                         amount: strAmount
@@ -171,15 +192,23 @@
                     });
                 });
             });
+            $('.do-delete-transaction').off('click');
             $('.do-delete-transaction').click(function (event) {
                 event.preventDefault();
-                event.stopImmediatePropagation();
-                var todeleteid = $(event.target).attr('data-delete');
-                // TODO show confirmation dialog in advance
-                hoodie.store.remove($el.attr('id').replace('-transactions', '') + 'item', todeleteid)
-                    .fail(function (error) {
-                        showHoodieError(error.message);
-                    });
+                var todeleteid = $(event.target).attr('data-delete'),
+                    todeletetype = $(event.target).attr('data-type');
+
+                // show confirmation dialog in advance
+                dialogModal('Wirklich löschen?',
+                            'Wenn ich den Eintrag für dich lösche, kann das nicht rückgängig gemacht werden. Bist du sicher, dass du den Eintrag <b>' +
+                            $('tr[data-id=' + todeleteid + '] .transaction-subject').html() +
+                            '</b> löschen möchtest?',
+                            'Löschen',
+                            'Behalten',
+                            function () { hoodie.store.remove(todeletetype, todeleteid)
+                                .fail(function (error) { showHoodieError(error.message); });
+                            },
+                            function () { $('tr[data-id=' + todeleteid + '] .transaction-dropdown .dropdown-menu').dropdown('toggle'); });
             });
 
             // add final sum row to table
