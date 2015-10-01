@@ -33,6 +33,18 @@
     font-weight: normal;
 }
 
+.form-group-together {
+    margin-bottom: 0px;
+}
+
+#loginForm .col-sm-2.control-label {
+    padding-right: 0px;
+}
+
+#loginForm .col-sm-2.control-label.multiline {
+    padding-top: 5px;
+}
+
 .tab-pane.panel {
     border-top: 0px;
     border-top-left-radius: 0px;

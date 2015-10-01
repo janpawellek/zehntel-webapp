@@ -518,6 +518,19 @@
         };
         connectionCheck();
 
+        // show additional fields when the user wants to signUP
+        $('input[type=radio][name=loginSignupOption]').change(function () {
+            if (this.value === 'signin') {
+                $('.loginSignup').addClass('hidden');
+            }
+            if (this.value === 'signup') {
+                $('.loginSignup').removeClass('hidden');
+            }
+        });
+        if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
+            $('.loginSignup').removeClass('hidden');
+        }
+
         // INCOME INPUT -----------------------------
         // let the income hand blink
         blinkHand = function () {

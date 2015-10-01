@@ -85,6 +85,41 @@
                                 <input type="password" class="form-control onLoginClearVal" id="loginPassword" placeholder="Passwort">
                             </div>
                         </div>
+                        <div class="form-group form-group-together">
+                            <div class="col-sm-2"></div>
+                            <div class="radio col-sm-10">
+                                <label>
+                                    <input type="radio" name="loginSignupOption" id="loginSignupOptionSignin" value="signin" checked>
+                                    Ich nutze Zehntel.org bereits und möchte mich <b>wieder einloggen</b>.
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-2"></div>
+                            <div class="radio col-sm-10">
+                                <label>
+                                    <input type="radio" name="loginSignupOption" id="loginSignupOptionSignup" value="signup">
+                                    Ich möchte mich kostenlos <b>neu anmelden</b> auf Zehntel.org.
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group voffset4 loginSignup hidden">
+                            <label for="loginPasswordRepeat" class="col-sm-2 control-label multiline">Passwort wiederholen</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control onLoginClearVal" id="loginPasswordRepeat" placeholder="Passwort">
+                            </div>
+                        </div>
+                        <div class="form-group loginSignup hidden">
+                            <label for="loginEmail" class="col-sm-2 control-label multiline">E-Mail (freiwillig)</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control onLoginClearVal" id="loginEmail" placeholder="E-Mail-Adresse (freiwillig)">
+                                <div class="voffset3">
+                                    Wir benötigen deine E-Mail-Adresse nur, um dir ein neues Passwort zu schicken, falls du dein Passwort vergessen hast.
+                                    Wenn du Zehntel.org anonymer nutzen möchtest, kannst du oben einen Fantasienamen angeben und deine E-Mail-Adresse frei lassen.
+                                    Stelle dann sicher, dass du dein Passwort nicht vergisst, damit du deinen Zugang zu deinen Daten nicht verlierst!
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success">Anmelden</button>
