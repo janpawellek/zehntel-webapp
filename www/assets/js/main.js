@@ -439,22 +439,73 @@
     $('#loginForm').submit(function (event) {
         event.preventDefault();
         var username = $('#loginName').val(),
-            password = $('#loginPassword').val();
+            password = $('#loginPassword').val(),
+            passwordRepeat = $('#loginPasswordRepeat').val(),
+            email = $('#loginEmail').val();
 
-        hoodie.account.signIn(username, password)
-            .done(
-                function () {
-                    // login successful
-                    setLoggedIn(true);
-                }
-            ).fail(
-                function (error) {
-                    // login failed
-                    $('#loginFailedDetail').html(error.message);
-                    $('#loginFailed').removeClass('hidden');
-                    setLoggedIn(false);
-                }
-            );
+        $('#signupFailed, #loginFailed').addClass('hidden');
+
+        if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
+            // sign up as a new user
+
+            if (!username || !password) {
+                $('#signupFailed').removeClass('hidden');
+                $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.');
+                return;
+            }
+
+            if (password !== passwordRepeat) {
+                $('#signupFailed').removeClass('hidden');
+                $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.');
+                return;
+            }
+
+            hoodie.account.signUp(username, password)
+                .done(
+                    function () {
+                        // signup successful
+                        setLoggedIn(true);
+
+                        // set e-mail
+                        if (email) {
+                            hoodie.store.add('userinfo', { id: 'useremail', email: email })
+                                .fail(
+                                    function (error) {
+                                        showHoodieError(error.message);
+                                    }
+                                );
+                        }
+                    }
+                ).fail(
+                    function (error) {
+                        // signup failed
+                        if (error.name === 'HoodieConflictError') {
+                            $('#signupFailed').removeClass('hidden');
+                            $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.');
+                            return;
+                        }
+                        $('#loginFailedDetail').html(error.message);
+                        $('#loginFailed').removeClass('hidden');
+                        setLoggedIn(false);
+                    }
+                );
+        } else {
+            // sign in using existing credentials
+            hoodie.account.signIn(username, password)
+                .done(
+                    function () {
+                        // login successful
+                        setLoggedIn(true);
+                    }
+                ).fail(
+                    function (error) {
+                        // login failed
+                        $('#loginFailedDetail').html(error.message);
+                        $('#loginFailed').removeClass('hidden');
+                        setLoggedIn(false);
+                    }
+                );
+        }
     });
 
     $('#logoutButton').click(function () {
