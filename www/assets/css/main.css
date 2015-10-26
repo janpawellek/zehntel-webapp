@@ -45,6 +45,10 @@
     padding-top: 5px;
 }
 
+#dialogModal .modal-dialog {
+    padding: 20px;
+}
+
 .tab-pane.panel {
     border-top: 0px;
     border-top-left-radius: 0px;

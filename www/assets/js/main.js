@@ -103,6 +103,7 @@
             });
             for (i = 0; i < collection.length; i += 1) {
                 curamountid = $el.attr('id') + '-amount-' + collection[i].id;
+                // console.log(collection[i]);
                 $el.append(
                     '<tr data-id="' + collection[i].id + '">' +
                         '<td class="transaction-date">' + escapeHtml(moment(new Date(collection[i].date)).format('DD.MM.YYYY')) + '</td>' +
@@ -245,28 +246,49 @@
             }
         }
 
-        this.add = function (transaction) {
+        this.add = function (transaction, doRepaint) {
+            // console.log($el.attr('id') + ' ADD ' + transaction.id);
+            if (hoodie.account.username === undefined) {
+                $('#signupSuggestion').removeClass('hidden');
+            }
             collection.push(transaction);
-            paint();
+            if (doRepaint) {
+                paint();
+            }
         };
 
         this.update = function (transaction) {
-            collection[getTransactionItemIndexById(transaction.id)] = transaction;
+            var txindex = getTransactionItemIndexById(transaction.id);
+            // console.log($el.attr('id') + ' UPDATE ' + transaction.id);
+            if (txindex === null) {
+                // add to collection if this transaction does not exist yet
+                // (happens on {moveData: true} on login)
+                collection.push(transaction);
+            } else {
+                // just update the transaction
+                collection[txindex] = transaction;
+            }
             paint();
         };
 
         this.remove = function (transaction) {
+            // console.log($el.attr('id') + ' REMOVE ' + transaction.id);
             collection.splice(getTransactionItemIndexById(transaction.id), 1);
             paint();
         };
 
         this.clear = function () {
+            // console.log($el.attr('id') + ' CLEAR');
             collection = [];
             paint();
         };
 
         this.getSum = function () {
             return sum;
+        };
+
+        this.repaint = function () {
+            paint();
         };
     };
 
@@ -278,18 +300,21 @@
             memo,
 
             // helper function to toggle onEmpty classes
-            addTransaction = function (transaction) {
+            addTransaction = function (transaction, doRepaint) {
                 $('#' + basename + '-panel .onEmptyShow').addClass('hidden');
                 $('#' + basename + '-panel .onEmptyHide').removeClass('hidden');
                 $('#' + basename + '-tab .onEmptyShow').addClass('hidden');
                 $('#' + basename + '-tab .onEmptyHide').removeClass('hidden');
-                transactions.add(transaction);
+                transactions.add(transaction, doRepaint);
             },
 
             // helper function to load all transactions from the store
             loadTransactions = function () {
                 hoodie.store.findAll(basename + 'item').then(function (items) {
-                    items.forEach(addTransaction);
+                    items.forEach(function (transaction) { addTransaction(transaction, false); });
+                    if (items.length) {
+                        transactions.repaint();
+                    }
                 }).fail(function (error) {
                     showHoodieError(error.message);
                 });
@@ -300,11 +325,11 @@
         this.transactions = transactions;
 
         // when a transaction changes, update the UI
-        hoodie.store.on(this.basename + 'item:add', addTransaction);
+        hoodie.store.on(this.basename + 'item:add', function (transaction) { addTransaction(transaction, true); });
         hoodie.store.on(this.basename + 'item:update', this.transactions.update);
         hoodie.store.on(this.basename + 'item:remove', this.transactions.remove);
         // clear items when user logs out
-        hoodie.account.on('signout', this.transactions.clear);
+        hoodie.account.on('signup signin signout', this.transactions.clear);
 
         // load the "memo to myself"
         hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
@@ -458,6 +483,18 @@
                         return;
                     }
 
+                    // { moveData: false } is not yet implemented in hoodie.account.signUp
+                    // thus, delete everything by hand if moveData is false
+                    if (!moveData) {
+                        hoodie.account.destroy()
+                            .done(function () {
+                                signInOrUp(true);
+                            })
+                            .fail(function (error) {
+                                showHoodieError(error.message);
+                            });
+                        return;
+                    }
                     hoodie.account.signUp(username, password, {moveData: moveData})
                         .done(
                             function () {
