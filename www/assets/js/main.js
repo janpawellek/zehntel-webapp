@@ -96,6 +96,7 @@
                 curamountid,
                 curamount,
                 roundedsum;
+            $('.onIncomeHide').addClass('hidden');
             sum = 0.0;
             $el.html('');
             collection.sort(function (a, b) {

@@ -3,6 +3,65 @@
     outline: none;
 }
 
+.navbar {
+    margin-bottom: 0px;
+}
+
+#main-container {
+    margin-top: 2em;
+}
+
+@media screen and (min-width:1801px) {
+    .jumbotron {
+        background: url(../img/background-2322.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (min-width:1401px) and (max-width:1800px) {
+    .jumbotron {
+        background: url(../img/background-1800.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (min-width:1101px) and (max-width:1400px) {
+    .jumbotron {
+        background: url(../img/background-1400.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (min-width:801px) and (max-width:1100px) {
+    .jumbotron {
+        background: url(../img/background-1100.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (min-width:601px) and (max-width:800px) {
+    .jumbotron {
+        background: url(../img/background-800.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (min-width:401px) and (max-width:600px) {
+    .jumbotron {
+        background: url(../img/background-600.jpg) bottom no-repeat;
+    }
+}
+
+@media screen and (max-width:400px) {
+    .jumbotron {
+        background: url(../img/background-400.jpg) bottom no-repeat;
+    }
+}
+
+.jumbotron {
+    background-size: cover;
+}
+
+.jumbotron .container {
+    color: #fff;
+    background-color: rgba(62, 63, 58, 0.95);
+}
+
 .connectionOnline {
     color: #93C54B;
 }

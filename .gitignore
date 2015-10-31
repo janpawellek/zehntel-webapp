@@ -4,3 +4,4 @@ node_modules/
 *.sublime-workspace
 *.bak
 .ports.json
+www/assets/img/background*
