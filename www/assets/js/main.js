@@ -445,6 +445,12 @@
             // hide login dialog and show user name
             $('#loginModal').modal('hide');
             $('.hoodieUsername').html(hoodie.account.username);
+
+            // load settings
+            $('#settingsName').val(hoodie.account.username);
+            hoodie.store.find('userinfo', 'useremail').done(function (item) {
+                $('#settingsEmail').val(item.email);
+            });
         } else {
             // set page layout to logged out state
             $('.onLogoffShow').removeClass('hidden');
@@ -582,6 +588,117 @@
 
     hoodie.account.on('signin signup', function () {
         setLoggedIn(true);
+    });
+
+    $('#loginModal').on('hidden.bs.modal', function () {
+        // empty password fields on modal close
+        $('#loginModal input[type=password]').val('');
+    });
+
+    // SETTINGS -------------------------------------
+    $('#settingsForm').submit(function (event) {
+        event.preventDefault();
+        var username = $('#settingsName').val(),
+            passwordOld = $('#settingsOldPassword').val(),
+            passwordNew = $('#settingsNewPassword').val(),
+            passwordNewRepeat = $('#settingsNewPasswordRepeat').val(),
+            email = $('#settingsEmail').val(),
+            closeCounter = 3;
+        $('#settingsFailed').addClass('hidden');
+
+        // change username if requested
+        if (username !== hoodie.account.username) {
+            if (!passwordOld) {
+                $('#settingsFailed').removeClass('hidden');
+                $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um deinen Namen zu ändern.');
+                return;
+            }
+            hoodie.account.changeUsername(passwordOld, username)
+                .done(function () {
+                    closeCounter -= 1;
+                    if (!closeCounter) {
+                        $('#settingsModal').modal('hide');
+                    }
+                })
+                .fail(function (error) {
+                    if (error.name === 'HoodieConflictError') {
+                        $('#settingsFailed').removeClass('hidden');
+                        $('#settingsFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.');
+                        return;
+                    }
+                    if (error.name === 'HoodieUnauthorizedError') {
+                        $('#settingsFailed').removeClass('hidden');
+                        $('#settingsFailed').html('Dein aktuelles Passwort ist nicht korrekt eingegeben.');
+                        return;
+                    }
+                    $('#settingsFailed').html(error.message);
+                    $('#settingsFailed').removeClass('hidden');
+                });
+        } else {
+            closeCounter -= 1;
+        }
+
+        // change password if requested
+        if (passwordNew || passwordNewRepeat) {
+            if (!passwordOld) {
+                $('#settingsFailed').removeClass('hidden');
+                $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um dein Passwort zu ändern.');
+                return;
+            }
+            if (passwordNew !== passwordNewRepeat) {
+                $('#settingsFailed').removeClass('hidden');
+                $('#settingsFailed').html('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.');
+                return;
+            }
+            if (passwordOld !== passwordNew) {
+                hoodie.account.changePassword(passwordOld, passwordNew)
+                    .done(function () {
+                        closeCounter -= 1;
+                        if (!closeCounter) {
+                            $('#settingsModal').modal('hide');
+                        }
+                    })
+                    .fail(function (error) {
+                        if (error.name === 'HoodieUnauthorizedError') {
+                            $('#settingsFailed').removeClass('hidden');
+                            $('#settingsFailed').html('Dein aktuelles Passwort ist nicht korrekt eingegeben.');
+                            return;
+                        }
+                        $('#settingsFailed').html(error.message);
+                        $('#settingsFailed').removeClass('hidden');
+                    });
+            } else {
+                closeCounter -= 1;
+            }
+        } else {
+            closeCounter -= 1;
+        }
+
+        // change e-mail address
+        hoodie.store.updateOrAdd('userinfo', 'useremail', {'email' : email})
+            .done(function () {
+                closeCounter -= 1;
+                if (!closeCounter) {
+                    $('#settingsModal').modal('hide');
+                }
+            })
+            .fail(function (error) {
+                $('#settingsFailed').html(error.message);
+                $('#settingsFailed').removeClass('hidden');
+            });
+    });
+    $('#settingsModal').on('hidden.bs.modal', function () {
+        // empty password fields on modal close
+        $('#settingsModal input[type=password]').val('');
+    });
+    hoodie.store.on('userinfo:add userinfo:update', function (item) {
+        if (item.id === 'useremail') {
+            $('#settingsEmail').val(item.email);
+        }
+    });
+    hoodie.account.on('changeusername', function (newUsername) {
+        $('.hoodieUsername').html(newUsername);
+        $('#settingsName').val(newUsername);
     });
 
     // MAIN FUNCTION --------------------------------
