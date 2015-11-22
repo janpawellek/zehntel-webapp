@@ -318,6 +318,12 @@
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs nav-justified" role="tablist">
                     <li role="presentation" class="active">
+                        <a id="give-tab" href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab">
+                            <span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span> Zehntel
+                            <span class="badge give-transactions-sum onLogoffClearContent onEmptyHide"></span>
+                        </a>
+                    </li>
+                    <li role="presentation">
                         <a id="spend-tab" href="#spend-panel" aria-controls="spend-panel" role="tab" data-toggle="tab">Ausgeben
                             <span class="badge spend-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
@@ -337,18 +343,82 @@
                             <span class="badge invest-transactions-sum onLogoffClearContent onEmptyHide"></span>
                         </a>
                     </li>
-                    <li role="presentation">
-                        <a id="give-tab" href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab">
-                            <span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span> Zehntel
-                            <span class="badge give-transactions-sum onLogoffClearContent onEmptyHide"></span>
-                        </a>
-                    </li>
                 </ul>
                 <!-- Tab panes -->
                 <div class="tab-content">
 
+                    <!-- PANEL GIVE -->
+                    <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="give-panel">
+                        <div class="panel-body">
+                            <h1>
+                                <span class="onEmptyShow">Dein Budget</span>
+                                <span class="give-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+                                für gute Zwecke
+                            </h1>
+                            <p>Wie viel ist dir eine gute Sache wert, an die du glaubst? Ein Zehntel deines Verdiensts oder mehr oder weniger... hier kannst du die Beträge aufschreiben um sie gezielt zu geben.</p>
+                            <div class="form-group onEmptyHide hidden">
+                                Memo an mich selbst: Ich kann pro Monat so viel geben:
+                                <span id="give-memo-change" class="onLogoffShow">
+                                    <label class="sr-only" for="give-memo">Betrag (in Euro)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-memo" placeholder="0,00 €">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+                                </span>
+                                <span id="give-memo-show" class="hidden onLogoffHide">
+                                    <strong id="give-memo-show-amount" class="onLogoffClearContent"></strong>
+                                    <a href="#" id="give-memo-changeit">ändern</a>
+                                </span>
+                            </div>
+                            <div class="alert alert-warning voffset3 onEmptyShow">
+                                Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
+                            </div>
+                        </div>
+                        <table class="table table-striped onEmptyHide hidden">
+                            <thead>
+                                <tr>
+                                    <th>Wann?</th>
+                                    <th>Wofür?</th>
+                                    <th>Wieviel?</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="give-transactions" class="onLogoffClearContent"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-date">Wann?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="give-input-date">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-subject">Wofür?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Wofür?">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="sr-only" for="give-input-amount">Wieviel?</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-input-amount" placeholder="0,00 €">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
                     <!-- PANEL SPEND -->
-                    <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="spend-panel">
+                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="spend-panel">
                         <div class="panel-body">
                             <h1>
                                 <span class="onEmptyShow">Dein Budget</span>
@@ -617,76 +687,6 @@
                                             <label class="sr-only" for="invest-input-amount">Wieviel?</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-input-amount" placeholder="0,00 €">
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-success btn-sm">OK</button>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </form>
-
-                    <!-- PANEL GIVE -->
-                    <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="give-panel">
-                        <div class="panel-body">
-                            <h1>
-                                <span class="onEmptyShow">Dein Budget</span>
-                                <span class="give-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-                                für gute Zwecke
-                            </h1>
-                            <p>Wie viel ist dir eine gute Sache wert, an die du glaubst? Ein Zehntel deines Verdiensts oder mehr oder weniger... hier kannst du die Beträge aufschreiben um sie gezielt zu geben.</p>
-                            <div class="form-group onEmptyHide hidden">
-                                Memo an mich selbst: Ich kann pro Monat so viel geben:
-                                <span id="give-memo-change" class="onLogoffShow">
-                                    <label class="sr-only" for="give-memo">Betrag (in Euro)</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-memo" placeholder="0,00 €">
-                                    </div>
-                                    <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-                                </span>
-                                <span id="give-memo-show" class="hidden onLogoffHide">
-                                    <strong id="give-memo-show-amount" class="onLogoffClearContent"></strong>
-                                    <a href="#" id="give-memo-changeit">ändern</a>
-                                </span>
-                            </div>
-                            <div class="alert alert-warning voffset3 onEmptyShow">
-                                Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-                            </div>
-                        </div>
-                        <table class="table table-striped onEmptyHide hidden">
-                            <thead>
-                                <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="give-transactions" class="onLogoffClearContent"></tbody>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label class="sr-only" for="give-input-date">Wann?</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="give-input-date">
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-group">
-                                            <label class="sr-only" for="give-input-subject">Wofür?</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Wofür?">
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-group">
-                                            <label class="sr-only" for="give-input-amount">Wieviel?</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
