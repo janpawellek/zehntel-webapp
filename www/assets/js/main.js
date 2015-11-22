@@ -2,7 +2,7 @@
 (function () {
     "use strict";
     var hoodie,
-        Piggybank,
+        Budget,
         Transactions;
 
     // initialize Hoodie
@@ -293,9 +293,9 @@
         };
     };
 
-    // PIGGYBANK ------------------------------------------
-    // Generic class for a Zehntel Piggybank
-    Piggybank = function (basename) {
+    // BUDGET ------------------------------------------
+    // Generic class for a Zehntel Budget
+    Budget = function (basename) {
         this.basename = basename;
         var transactions = new Transactions($('#' + this.basename + '-transactions')),
             memo,
@@ -707,11 +707,11 @@
         var blinkHand,
             connectionCheck,
             updateIncomeSum,
-            spendPiggy,
-            contractsPiggy,
-            savePiggy,
-            investPiggy,
-            givePiggy;
+            spendBudget,
+            contractsBudget,
+            saveBudget,
+            investBudget,
+            giveBudget;
 
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();
@@ -988,12 +988,12 @@
             });
         });
 
-        // create piggys
-        spendPiggy = new Piggybank('spend');
-        contractsPiggy = new Piggybank('contracts');
-        savePiggy = new Piggybank('save');
-        investPiggy = new Piggybank('invest');
-        givePiggy = new Piggybank('give');
+        // create budgets
+        spendBudget = new Budget('spend');
+        contractsBudget = new Budget('contracts');
+        saveBudget = new Budget('save');
+        investBudget = new Budget('invest');
+        giveBudget = new Budget('give');
 
         // set initial login/logout state
         if (hoodie.account.username === undefined) {
