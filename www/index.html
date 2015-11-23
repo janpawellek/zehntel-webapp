@@ -222,11 +222,22 @@
             </div>
         </div>
 
-        <div id="main-jumbotron" class="jumbotron onLoginHide onIncomeHide">
+        <div id="main-jumbotron" class="jumbotron onLoginHide">
+        </div>
+
+        <div id="cta-container" class="container onLoginHide">
+            <div class="row">
+                <div class="col-md-8">
+                    <p>Zehntel.org hilft dir, dein Budget zu planen.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <button id="ctaButton" type="submit" class="btn btn-warning">Jetzt mein Budget planen</button>
+                </div>
+            </div>
         </div>
 
         <!-- MAIN CONTAINER -->
-        <div id="main-container" class="container">
+        <div id="main-container" class="container hidden onLoginShow">
 
             <div id="signupSuggestion" class="alert alert-warning hidden onLoginHide" role="alert">
                 Danke, dass du Zehntel.org ausprobierst. Du kannst gerne alles testen und dich umschauen.

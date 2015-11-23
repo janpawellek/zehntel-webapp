@@ -96,7 +96,6 @@
                 curamountid,
                 curamount,
                 roundedsum;
-            $('.onIncomeHide').addClass('hidden');
             sum = 0.0;
             $el.html('');
             collection.sort(function (a, b) {
@@ -712,6 +711,13 @@
             saveBudget,
             investBudget,
             giveBudget;
+
+        // handle CTA button
+        $('#ctaButton').on('click', function (event) {
+            $('#main-jumbotron').addClass('hidden');
+            $('#cta-container').addClass('hidden');
+            $('#main-container').removeClass('hidden');
+        });
 
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();
