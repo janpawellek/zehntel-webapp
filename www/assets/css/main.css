@@ -18,6 +18,15 @@
     background-size: cover;
 }
 
+#ctaMain {
+    font-size: 1.6em;
+}
+
+#ctaButton {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+}
+
 .connectionOnline {
     color: #93C54B;
 }
