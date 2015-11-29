@@ -733,11 +733,9 @@
             setTimeout(function () {
                 hoodie.checkConnection()
                     .done(function () {
-                        $('.connectionOnline').removeClass('hidden');
                         $('.connectionOffline').addClass('hidden');
                     })
                     .fail(function () {
-                        $('.connectionOnline').addClass('hidden');
                         $('.connectionOffline').removeClass('hidden');
                     });
                 connectionCheck();
