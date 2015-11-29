@@ -229,7 +229,7 @@
             $el.append(
                 '<tr>' +
                     '<td></td>' +
-                    '<td><b>Verfügbar in diesem Sparschwein:</b></td>' +
+                    '<td><b>Dein Budget:</b></td>' +
                     '<td style="font-weight: bold;" class="autonumeric" id="' + $el.attr('id') + '-sum-row' + '"><b>' + sum + '</b></td>' +
                     '<td></td>' +
                     '</tr>'
@@ -902,15 +902,15 @@
 
             // check if sum of distributed income is equal to total income
             if (remainingSum < -0.001) {
-                messageModal('Das kann ich nicht machen',
-                             'Du hast mehr Geld aufgeteilt, als du verdient hast. Bitte korrigiere das.',
+                messageModal('Bitte nochmal prüfen',
+                             'Du hast mehr Geld aufgeteilt, als du eingenommen hast. Bitte korrigiere das.',
                              'OK');
                 return;
             }
 
             if (remainingSum > 0.001) {
                 dialogModal('Da ist noch etwas übrig',
-                            'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag in dein Zehntel-Sparschwein hinzufügen?',
+                            'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag zum Zehntel hinzufügen?',
                             'Ja zum Zehntel addieren',
                             'Nein nochmal nachdenken',
                             function () { $('#income-give').autoNumeric('set', remainingSum + (strGive > 0.001 ? parseFloat(strGive) : 0));

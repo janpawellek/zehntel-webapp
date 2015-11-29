@@ -272,6 +272,17 @@
                 <form id="income-dist-form" class="form-horizontal">
                     <h1>Teile das Geld in diese Budgets auf:</h1>
                     <div class="form-group">
+                        <label for="income-give" class="col-sm-2 control-label">
+                            <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Zehntel:
+                        </label>
+                        <div class="col-sm-2">
+                            <div class="input-group">
+                                <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-give" placeholder="0,00 €">
+                                <span id="income-give-percentage" class="input-group-addon onLogoffClearContent"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="income-spend" class="col-sm-2 control-label">Ausgeben:</label>
                         <div class="col-sm-2">
                             <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-spend" placeholder="0,00 €">
@@ -293,17 +304,6 @@
                         <label for="income-invest" class="col-sm-2 control-label">Investieren:</label>
                         <div class="col-sm-2">
                             <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-invest" placeholder="0,00 €">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="income-give" class="col-sm-2 control-label">
-                            <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Zehntel:
-                        </label>
-                        <div class="col-sm-2">
-                            <div class="input-group">
-                                <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-give" placeholder="0,00 €">
-                                <span id="income-give-percentage" class="input-group-addon onLogoffClearContent"></span>
-                            </div>
                         </div>
                     </div>
                     <div class="form-group">
