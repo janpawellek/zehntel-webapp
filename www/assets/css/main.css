@@ -75,6 +75,10 @@
     border-top-right-radius: 0px;
 }
 
+.badge-wrapper {
+    height: 15px;
+}
+
 .negative-sum.badge {
     background-color: #D9534F;
 }
