@@ -243,22 +243,35 @@
             </div>
 
             <!-- Income input form -->
-            <form id="income-new-form" class="form-inline">
-                <span>Einnahmen hier eintragen</span>
-                <span id="income-hand" class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>
-                <div class="form-group">
-                    <label class="sr-only" for="income-date">Wann?</label>
-                    <input type="text" class="form-control onLogoffClearVal insertToday income-input" id="income-date">
+            <form id="income-new-form">
+                <div class="row">
+                    <div class="col-md-2 income-new-form-label">
+                        <strong>Einnahmen hier eintragen</strong>
+                        <span class="income-hand glyphicon glyphicon-hand-down visible-xs-inline-block visible-sm-inline-block" aria-hidden="true"></span>
+                        <span class="income-hand glyphicon glyphicon-hand-right visible-md-inline-block visible-lg-inline-block" aria-hidden="true"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="sr-only" for="income-date">Wann?</label>
+                            <input type="text" class="form-control onLogoffClearVal insertToday income-input" id="income-date">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="sr-only" for="income-subject">Woher?</label>
+                            <input type="text" class="form-control onLogoffClearVal income-input" id="income-subject" placeholder="Woher?">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="sr-only" for="income-amount">Wieviel?</label>
+                            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-amount" placeholder="0,00 €">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-default">In die Budgets aufteilen</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="sr-only" for="income-subject">Woher?</label>
-                    <input type="text" class="form-control onLogoffClearVal income-input" id="income-subject" placeholder="Woher?">
-                </div>
-                <div class="form-group">
-                    <label class="sr-only" for="income-amount">Wieviel?</label>
-                    <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-amount" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-default">In die Budgets aufteilen</button>
             </form>
 
             <!-- Income distribution form -->

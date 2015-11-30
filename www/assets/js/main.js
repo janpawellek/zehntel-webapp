@@ -757,11 +757,6 @@
         }
 
         // INCOME INPUT -----------------------------
-        // let the income hand blink
-        blinkHand = function () {
-            setTimeout(function () { $('#income-hand').toggleClass('text-success'); blinkHand(); }, 1000);
-        };
-        blinkHand();
 
         // helper function to update the percentage and the remaining amount of income
         updateIncomeSum = function () {

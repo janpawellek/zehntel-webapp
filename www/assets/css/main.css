@@ -27,10 +27,6 @@
     margin-bottom: 1em;
 }
 
-.connectionOnline {
-    color: #93C54B;
-}
-
 .connectionOffline {
     color: #D9534F;
 }
@@ -87,8 +83,23 @@ h1 > .negative-sum {
     color: #D9534F;
 }
 
-#income-hand {
-    padding: 0px 5px;
+#income-new-form {
+	background-color: #F8F5F0;
+    border: 1px solid #DFD7CA;
+    border-radius: 4px;
+    padding: 15px 15px 0px 15px;
+}
+
+#income-new-form .income-new-form-label {
+    margin-bottom: 15px;
+}
+
+#income-new-form button {
+    margin-bottom: 15px;
+}
+
+.income-hand {
+    padding-left: 5px;
 }
 
 #income-dist-form h1 {
@@ -122,3 +133,9 @@ h1 > .negative-sum {
 .voffset8 { margin-top: 100px; }
 .voffset9 { margin-top: 150px; }
 
+/* fixes navbar break on really small screen sizes */
+@media (max-width: 400px) {
+    .navbar-brand {
+        font-size: 16px;
+    }
+}
