@@ -109,7 +109,7 @@
                         '<td class="transaction-date">' + escapeHtml(moment(new Date(collection[i].date)).format('DD.MM.YYYY')) + '</td>' +
                         '<td class="transaction-subject">' + escapeHtml(collection[i].subject) + '</td>' +
                         '<td class="transaction-amount autonumeric" id="' + curamountid + '">' + escapeHtml(collection[i].amount) + '</td>' +
-                        '<td class="transaction-dropdown" style="padding: 5px;">' +
+                        '<td class="transaction-dropdown">' +
                         '<div class="btn-group">' +
                         '<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                         '<span class="caret"></span>' +

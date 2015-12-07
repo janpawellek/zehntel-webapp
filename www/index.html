@@ -395,13 +395,13 @@
                                 Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
                             </div>
                         </div>
-                        <table class="table table-striped onEmptyHide hidden">
+                        <table class="transactions-table table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
+                                    <th class="th-date">Wann?</th>
+                                    <th class="th-subject">Wofür?</th>
+                                    <th class="th-amount">Wieviel?</th>
+                                    <th class="th-button"></th>
                                 </tr>
                             </thead>
                             <tbody id="give-transactions" class="onLogoffClearContent"></tbody>
@@ -430,9 +430,10 @@
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="transaction-dropdown">
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
                                     </td>
-                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -465,13 +466,13 @@
                                 Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
                             </div>
                         </div>
-                        <table class="table table-striped onEmptyHide hidden">
+                        <table class="transactions-table table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
+                                    <th class="th-date">Wann?</th>
+                                    <th class="th-subject">Wofür?</th>
+                                    <th class="th-amount">Wieviel?</th>
+                                    <th class="th-button"></th>
                                 </tr>
                             </thead>
                             <tbody id="spend-transactions" class="onLogoffClearContent"></tbody>
@@ -500,9 +501,10 @@
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="transaction-dropdown">
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
                                     </td>
-                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -535,13 +537,13 @@
                                 Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
                             </div>
                         </div>
-                        <table class="table table-striped onEmptyHide hidden">
+                        <table class="transactions-table table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
+                                    <th class="th-date">Wann?</th>
+                                    <th class="th-subject">Wofür?</th>
+                                    <th class="th-amount">Wieviel?</th>
+                                    <th class="th-button"></th>
                                 </tr>
                             </thead>
                             <tbody id="contracts-transactions" class="onLogoffClearContent"></tbody>
@@ -570,9 +572,10 @@
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="contracts-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="transaction-dropdown">
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
                                     </td>
-                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -605,13 +608,13 @@
                                 Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
                             </div>
                         </div>
-                        <table class="table table-striped onEmptyHide hidden">
+                        <table class="transactions-table table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
+                                    <th class="th-date">Wann?</th>
+                                    <th class="th-subject">Wofür?</th>
+                                    <th class="th-amount">Wieviel?</th>
+                                    <th class="th-button"></th>
                                 </tr>
                             </thead>
                             <tbody id="save-transactions" class="onLogoffClearContent"></tbody>
@@ -640,9 +643,10 @@
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="save-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="transaction-dropdown">
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
                                     </td>
-                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -675,13 +679,13 @@
                                 Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
                             </div>
                         </div>
-                        <table class="table table-striped onEmptyHide hidden">
+                        <table class="transactions-table table table-striped onEmptyHide hidden">
                             <thead>
                                 <tr>
-                                    <th>Wann?</th>
-                                    <th>Wofür?</th>
-                                    <th>Wieviel?</th>
-                                    <th></th>
+                                    <th class="th-date">Wann?</th>
+                                    <th class="th-subject">Wofür?</th>
+                                    <th class="th-amount">Wieviel?</th>
+                                    <th class="th-button"></th>
                                 </tr>
                             </thead>
                             <tbody id="invest-transactions" class="onLogoffClearContent"></tbody>
@@ -710,9 +714,10 @@
                                                 <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-input-amount" placeholder="0,00 €">
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="transaction-dropdown">
                                         <button type="submit" class="btn btn-success btn-sm">OK</button>
                                     </td>
-                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>

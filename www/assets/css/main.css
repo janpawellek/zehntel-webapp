@@ -114,6 +114,60 @@ h1 > .negative-sum {
     margin-left: 20px;
 }
 
+.transactions-table {
+    word-wrap: break-word;
+    table-layout: fixed;
+}
+
+@media (max-width: 549px) {
+    .transactions-table .th-date {
+        width: 7em;
+    }
+
+    .transactions-table .th-subject {
+        width: 6em;
+    }
+
+    .transactions-table .th-amount {
+        width: 7em;
+    }
+
+    .transactions-table .th-button {
+        width: 3em;
+    }
+
+    .transaction-dropdown {
+        padding: 5px !important;
+    }
+}
+
+@media (min-width: 550px) {
+    .transactions-table .th-date {
+        width: 20%;
+    }
+
+    .transactions-table .th-subject {
+        width: 50%;
+    }
+
+    .transactions-table .th-amount {
+        width: 20%;
+    }
+
+    .transactions-table .th-button {
+        width: 10%;
+    }
+
+    .transaction-dropdown {
+        text-align: right;
+        padding: 5px 20px 5px 5px !important;
+    }
+}
+
+.transaction-dropdown .btn-success {
+    margin-top: 2px;
+}
+
 .dropdown-menu > li > a {
     text-transform: none;
     font-size: 1em;
