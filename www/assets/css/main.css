@@ -69,10 +69,12 @@
     padding: 20px;
 }
 
-.tab-pane.panel {
-    border-top: 0px;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
+@media (min-width: 768px) {
+    .tab-pane.panel {
+        border-top: 0px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+    }
 }
 
 .badge-wrapper {
@@ -137,7 +139,14 @@ h1 > .negative-sum {
 .voffset8 { margin-top: 100px; }
 .voffset9 { margin-top: 150px; }
 
-/* fixes navbar break on really small screen sizes */
+/* fixes for small screen sizes */
+@media (max-width: 768px) {
+    .input-group + .btn {
+        margin-top: 5px;
+    }
+}
+
+/* fixes navbar break */
 @media (max-width: 400px) {
     .navbar-brand {
         font-size: 16px;
