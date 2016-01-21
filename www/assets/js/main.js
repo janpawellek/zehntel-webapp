@@ -1,4 +1,4 @@
-/*global $,moment,Hoodie*/
+/*global window,$,moment,Hoodie*/
 (function () {
     "use strict";
     var hoodie,
@@ -30,7 +30,7 @@
         $('#messageModalButton').html(strButton);
         $('#messageModal').modal('show');
     }
-    $('#messageModalButton').click(function (event) {
+    $('#messageModalButton').click(function () {
         $('#messageModal').modal('hide');
     });
     function showHoodieError(message) {
@@ -63,12 +63,12 @@
         $('#dialogModal').modal('show');
 
         $('#dialogModalButtonOk').off('click');
-        $('#dialogModalButtonOk').click(function (event) {
+        $('#dialogModalButtonOk').click(function () {
             $('#dialogModal').modal('hide');
             onOk();
         });
         $('#dialogModalButtonCancel').off('click');
-        $('#dialogModalButtonCancel').click(function (event) {
+        $('#dialogModalButtonCancel').click(function () {
             $('#dialogModal').modal('hide');
             onCancel();
         });
@@ -129,7 +129,7 @@
                     // get amount as number to compute sum
                     curamount = $('#' + curamountid).autoNumeric('get');
                     sum += parseFloat(curamount);
-                } catch (e) {
+                } catch (ignore) {
                     // collection[i].amount is not numeric
                 }
             }
@@ -703,17 +703,12 @@
     // MAIN FUNCTION --------------------------------
     // execute when DOM is ready
     $(function () {
-        var blinkHand,
-            connectionCheck,
+        var connectionCheck,
             updateIncomeSum,
-            spendBudget,
-            contractsBudget,
-            saveBudget,
-            investBudget,
-            giveBudget;
+            budgets;
 
         // handle CTA button
-        $('#ctaButton').on('click', function (event) {
+        $('#ctaButton').on('click', function () {
             $('#main-jumbotron').addClass('hidden');
             $('#cta-container').addClass('hidden');
             $('#main-container').removeClass('hidden');
@@ -730,7 +725,7 @@
 
         // initialize the connection checker
         connectionCheck = function () {
-            setTimeout(function () {
+            window.setTimeout(function () {
                 hoodie.checkConnection()
                     .done(function () {
                         $('.connectionOffline').addClass('hidden');
@@ -859,7 +854,7 @@
         });
 
         // close distribution panel on click on the upper right x
-        $('#income-dist-div-close').on('click', function (event) {
+        $('#income-dist-div-close').on('click', function () {
             $('#income-dist-div').addClass('hidden');
         });
 
@@ -908,7 +903,7 @@
                             'Nein nochmal nachdenken',
                             function () { $('#income-give').autoNumeric('set', remainingSum + (strGive > 0.001 ? parseFloat(strGive) : 0));
                                           updateIncomeSum(); },
-                            function () { },
+                            function () { updateIncomeSum(); },
                             true);
                 $('#remaining-dialog-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'});
                 return;
@@ -988,11 +983,12 @@
         });
 
         // create budgets
-        spendBudget = new Budget('spend');
-        contractsBudget = new Budget('contracts');
-        saveBudget = new Budget('save');
-        investBudget = new Budget('invest');
-        giveBudget = new Budget('give');
+        budgets = [];
+        budgets.push(new Budget('spend'));
+        budgets.push(new Budget('contracts'));
+        budgets.push(new Budget('save'));
+        budgets.push(new Budget('invest'));
+        budgets.push(new Budget('give'));
 
         // set initial login/logout state
         if (hoodie.account.username === undefined) {

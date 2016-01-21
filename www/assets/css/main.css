@@ -1,10 +1,10 @@
 
-.nav-tabs > .active > a, .nav-tabs > .active > a:hover {
+.nav-tabs > .active > a, .nav-tabs > .active > a:focus {
     outline: none;
 }
 
 .navbar {
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 #main-container {
@@ -54,11 +54,11 @@
 }
 
 .form-group-together {
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 #loginForm .col-sm-2.control-label {
-    padding-right: 0px;
+    padding-right: 0;
 }
 
 #loginForm .col-sm-2.control-label.multiline {
@@ -71,9 +71,9 @@
 
 @media (min-width: 768px) {
     .tab-pane.panel {
-        border-top: 0px;
-        border-top-left-radius: 0px;
-        border-top-right-radius: 0px;
+        border-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
     }
 }
 
@@ -93,7 +93,7 @@ h1 > .negative-sum {
 	background-color: #F8F5F0;
     border: 1px solid #DFD7CA;
     border-radius: 4px;
-    padding: 15px 15px 0px 15px;
+    padding: 15px 15px 0 15px;
 }
 
 #income-new-form .income-new-form-label {
