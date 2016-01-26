@@ -1,188 +1,188 @@
-
-.nav-tabs > .active > a, .nav-tabs > .active > a:focus {
-    outline: none;
+.nav-tabs > .active > a,
+.nav-tabs > .active > a:focus {
+  outline: none;
 }
 
 .navbar {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 #main-container {
-    margin-top: 2em;
+  margin-top: 2em;
 }
 
 #main-jumbotron {
-    background: url(../img/zehntel-desk.jpg) no-repeat bottom center;
-    min-height: 80vh;
-    min-height: calc(100vh - 60px - 160px);
-    background-size: cover;
+  background: url("../img/zehntel-desk.jpg") no-repeat bottom center;
+  min-height: 80vh;
+  min-height: calc(100vh - 60px - 160px);
+  background-size: cover;
 }
 
 #ctaMain {
-    font-size: 1.6em;
+  font-size: 1.6em;
 }
 
 #ctaButton {
-    font-size: 1.2em;
-    margin-bottom: 1em;
+  font-size: 1.2em;
+  margin-bottom: 1em;
 }
 
 .connectionOffline {
-    color: #D9534F;
+  color: #d9534f;
 }
 
 .green-tooltip + .tooltip > .tooltip-inner {
-    background-color: #93C54B;
+  background-color: #93c54d;
 }
 
 .green-tooltip + .tooltip.bottom > .tooltip-arrow {
-    border-bottom-color: #93C54B;
+  border-bottom-color: #93c54b;
 }
 
 .red-tooltip + .tooltip > .tooltip-inner {
-    background-color: #D9534F;
+  background-color: #d9534f;
 }
 
 .red-tooltip + .tooltip.bottom > .tooltip-arrow {
-    border-bottom-color: #D9534F;
+  border-bottom-color: #d9534f;
 }
 
 .tooltip {
-    text-transform: none;
-    font-size: 1em;
-    font-weight: normal;
+  text-transform: none;
+  font-size: 1em;
+  font-weight: normal;
 }
 
 .form-group-together {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 #loginForm .col-sm-2.control-label {
-    padding-right: 0;
+  padding-right: 0;
 }
 
 #loginForm .col-sm-2.control-label.multiline {
-    padding-top: 5px;
+  padding-top: 5px;
 }
 
 #dialogModal .modal-dialog {
-    padding: 20px;
+  padding: 20px;
 }
 
 @media (min-width: 768px) {
-    .tab-pane.panel {
-        border-top: 0;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-    }
+  .tab-pane.panel {
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
 }
 
 .badge-wrapper {
-    height: 15px;
+  height: 15px;
 }
 
 .negative-sum.badge {
-    background-color: #D9534F;
+  background-color: #d9534f;
 }
 
 h1 > .negative-sum {
-    color: #D9534F;
+  color: #d9534f;
 }
 
 #income-new-form {
-	background-color: #F8F5F0;
-    border: 1px solid #DFD7CA;
-    border-radius: 4px;
-    padding: 15px 15px 0 15px;
+  background-color: #f8f5f0;
+  border: 1px solid #dfd7ca;
+  border-radius: 4px;
+  padding: 15px 15px 0 15px;
 }
 
 #income-new-form .income-new-form-label {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 #income-new-form button {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .income-hand {
-    padding-left: 5px;
+  padding-left: 5px;
 }
 
 #income-dist-form h1 {
-    font-size: 140%;
-    margin-bottom: 20px;
-    margin-left: 20px;
+  font-size: 140%;
+  margin-bottom: 20px;
+  margin-left: 20px;
 }
 
 .transactions-table {
-    word-wrap: break-word;
-    table-layout: fixed;
+  word-wrap: break-word;
+  table-layout: fixed;
 }
 
 @media (max-width: 549px) {
-    .transactions-table .th-date {
-        width: 7em;
-    }
+  .transactions-table .th-date {
+    width: 7em;
+  }
 
-    .transactions-table .th-subject {
-        width: 6em;
-    }
+  .transactions-table .th-subject {
+    width: 6em;
+  }
 
-    .transactions-table .th-amount {
-        width: 7em;
-    }
+  .transactions-table .th-amount {
+    width: 7em;
+  }
 
-    .transactions-table .th-button {
-        width: 3em;
-    }
+  .transactions-table .th-button {
+    width: 3em;
+  }
 
-    .transaction-dropdown {
-        padding: 5px !important;
-    }
+  .transaction-dropdown {
+    padding: 5px !important;
+  }
 }
 
 @media (min-width: 550px) {
-    .transactions-table .th-date {
-        width: 20%;
-    }
+  .transactions-table .th-date {
+    width: 20%;
+  }
 
-    .transactions-table .th-subject {
-        width: 50%;
-    }
+  .transactions-table .th-subject {
+    width: 50%;
+  }
 
-    .transactions-table .th-amount {
-        width: 20%;
-    }
+  .transactions-table .th-amount {
+    width: 20%;
+  }
 
-    .transactions-table .th-button {
-        width: 10%;
-    }
+  .transactions-table .th-button {
+    width: 10%;
+  }
 
-    .transaction-dropdown {
-        text-align: right;
-        padding: 5px 20px 5px 5px !important;
-    }
+  .transaction-dropdown {
+    text-align: right;
+    padding: 5px 20px 5px 5px !important;
+  }
 }
 
 .transaction-dropdown .btn-success {
-    margin-top: 2px;
+  margin-top: 2px;
 }
 
 .dropdown-menu > li > a {
-    text-transform: none;
-    font-size: 1em;
+  text-transform: none;
+  font-size: 1em;
 }
 
 #income-sum-text:empty + span {
-    display: none;
+  display: none;
 }
 
 #income-sum-text.negative-sum {
-    color: #D9534F;
-    font-weight: bold;
+  color: #d9534f;
+  font-weight: bold;
 }
 
-.voffset  { margin-top: 2px; }
+.voffset { margin-top: 2px; }
 .voffset1 { margin-top: 5px; }
 .voffset2 { margin-top: 10px; }
 .voffset3 { margin-top: 15px; }
@@ -195,14 +195,14 @@ h1 > .negative-sum {
 
 /* fixes for small screen sizes */
 @media (max-width: 768px) {
-    .input-group + .btn {
-        margin-top: 5px;
-    }
+  .input-group + .btn {
+    margin-top: 5px;
+  }
 }
 
 /* fixes navbar break */
 @media (max-width: 400px) {
-    .navbar-brand {
-        font-size: 16px;
-    }
+  .navbar-brand {
+    font-size: 16px;
+  }
 }
