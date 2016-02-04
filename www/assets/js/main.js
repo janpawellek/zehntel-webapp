@@ -1,7 +1,8 @@
-/*global window,$,moment,Hoodie*/
+/*global window,$,moment,Hoodie,sjcl*/
 (function () {
   'use strict'
   var hoodie
+  var Encryption
   var Budget
   var Transactions
 
@@ -73,6 +74,83 @@
       onCancel()
     })
   }
+
+  // ENCRYPTION
+  Encryption = (function () {
+    var usernameSha1
+    var salt
+    var iv
+
+    // internal state variables
+    var initialized = false
+    var saltPublished = false
+
+    // encryption consts
+    var keySize = 256
+
+    return {
+      reset: function () {
+        usernameSha1 = undefined
+        salt = undefined
+        iv = undefined
+        initialized = false
+        saltPublished = false
+        console.log('Encryption reset')
+      },
+
+      isInitialized: function () {
+        return !!initialized
+      },
+
+      // Initializes the Encryption object with Salt and IV.
+      // Returns a Promise.
+      init: function (username) {
+        if (initialized) {
+          this.reset()
+        }
+        // Fetch Salt and IV or init them randomly
+        usernameSha1 = sjcl.codec.hex.fromBits(sjcl.hash.sha1.hash(username))
+        console.log('Encryption init. usernameSha1=' + usernameSha1)
+        return hoodie.global.find('global-salts', usernameSha1)
+        .then(function (result) {
+          salt = result.salt
+          iv = result.iv
+          initialized = true
+          saltPublished = true
+          console.log('Fetched from global salts: Salt=' + salt + ' IV=' + iv)
+        })
+        .catch(function () {
+          salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
+          iv = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
+          initialized = true
+          saltPublished = false
+          console.log('Created new: Salt=' + salt + ' IV=' + iv)
+        })
+      },
+
+      // Publishes Salt and IV into the global-salts store.
+      // The user needs to be already signed in in order to do so.
+      // Returns a Promise.
+      publishSalt: function () {
+        if (saltPublished) {
+          return hoodie.global.find('global-salts', usernameSha1)
+        }
+        console.log('Publish to global salts: Salt=' + salt + ' IV=' + iv)
+        return hoodie.store.add('global-salts', {
+          id: usernameSha1,
+          salt: salt,
+          iv: iv
+        })
+        .publish()
+        .then(function () {
+          saltPublished = true
+        })
+        // TODO it fails here. (hoodie.store.add(...).publish is not a function). this works: hoodie.store.findAll('global-test').publish().then(function(r){console.log(r)}).catch(function(e){console.log(e)})
+      }
+
+      // TODO Check if saltPublished prior to encrypt anything
+    }
+  })()
 
   // TRANSACTIONS ---------------------------------
   // Generic class for Transactions
@@ -451,6 +529,9 @@
         $('#settingsEmail').val(item.email)
       })
     } else {
+      // reset Encryption
+      Encryption.reset()
+
       // set page layout to logged out state
       $('.onLogoffShow').removeClass('hidden')
       $('.onLogoffHide').addClass('hidden')
@@ -474,6 +555,18 @@
     var passwordRepeat = $('#loginPasswordRepeat').val()
     var email = $('#loginEmail').val()
     var signInOrUp = function (moveData) {
+      // Initialize Encryption (salt and iv) if not done yet
+      if (!Encryption.isInitialized()) {
+        Encryption.init(username)
+        .then(function () {
+          signInOrUp(moveData)
+        })
+        .fail(function (error) {
+          showHoodieError(error.message)
+        })
+        return
+      }
+
       if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
         // sign up as a new user
 
@@ -505,7 +598,27 @@
         .done(
           function () {
             // signup successful
-            setLoggedIn(true)
+            // publish salt and iv
+            Encryption.publishSalt()
+            .then(function () {
+              setLoggedIn(true)
+            })
+            .fail(function (error) {
+              showHoodieError(error.message)
+              // emergency sign out since salt and iv could not be saved
+              hoodie.account.signOut()
+              .done(
+                function () {
+                  // logout successful
+                  setLoggedIn(false)
+                }
+              ).fail(
+                function (error) {
+                  // logout failed
+                  showHoodieError(error.message)
+                }
+              )
+            })
 
             // set e-mail
             if (email) {
