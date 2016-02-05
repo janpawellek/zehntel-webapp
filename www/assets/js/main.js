@@ -137,15 +137,14 @@
         }
         console.log('Publish to global salts: Salt=' + salt + ' IV=' + iv)
         return hoodie.store.add('global-salts', {
+          $public: true,
           id: usernameSha1,
           salt: salt,
           iv: iv
         })
-        .publish()
         .then(function () {
           saltPublished = true
         })
-        // TODO it fails here. (hoodie.store.add(...).publish is not a function). this works: hoodie.store.findAll('global-test').publish().then(function(r){console.log(r)}).catch(function(e){console.log(e)})
       }
 
       // TODO Check if saltPublished prior to encrypt anything
