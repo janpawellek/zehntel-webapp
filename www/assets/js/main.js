@@ -87,6 +87,7 @@
 
     // encryption consts
     var keySize = 256
+    var pbkdfIterations = 1000
 
     return {
       reset: function () {
@@ -145,6 +146,52 @@
         .then(function () {
           saltPublished = true
         })
+      },
+
+      // Authenticates with plain text password
+      // Returns the HMAC for authentication at the server
+      authWithPassword: function (password) {
+        var hmacSHA1
+        var masterkey
+
+        if (!initialized || !salt) {
+          throw new Error('Need to initialize the Encryption object first.')
+        }
+        if (!password) {
+          throw new Error('A password is necessary.')
+        }
+
+        hmacSHA1 = function (key) {
+          var SjclHmac = sjcl.misc.hmac
+          var hasher = new SjclHmac(key, sjcl.hash.sha1)
+          this.encrypt = function () {
+            return hasher.encrypt.apply(hasher, arguments)
+          }
+        }
+
+        // perform PBKDF to derive Master Key
+        masterkey = sjcl.codec.hex.fromBits(
+          sjcl.misc.pbkdf2(
+            password,
+            sjcl.codec.hex.toBits(salt),
+            pbkdfIterations,
+            keySize,
+            hmacSHA1
+          )
+        )
+        return this.authWithMasterKey(masterkey)
+      },
+
+      authWithMasterKey: function (masterkey) {
+        var hmac
+        var SjclHmac = sjcl.misc.hmac
+
+        // Generate HMAC
+        hmac = sjcl.codec.hex.fromBits((new SjclHmac(
+          sjcl.codec.hex.toBits(masterkey),
+          sjcl.hash.sha256
+        ).mac(salt)))
+        return hmac
       }
 
       // TODO Check if saltPublished prior to encrypt anything
