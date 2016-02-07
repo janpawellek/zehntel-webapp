@@ -80,6 +80,7 @@
     var usernameSha1
     var salt
     var iv
+    var masterkey
 
     // internal state variables
     var initialized = false
@@ -87,13 +88,14 @@
 
     // encryption consts
     var keySize = 256
-    var pbkdfIterations = 1000
+    var pbkdfIterations = 2048
 
     return {
       reset: function () {
         usernameSha1 = undefined
         salt = undefined
         iv = undefined
+        masterkey = undefined
         initialized = false
         saltPublished = false
         console.log('Encryption reset')
@@ -120,12 +122,16 @@
           saltPublished = true
           console.log('Fetched from global salts: Salt=' + salt + ' IV=' + iv)
         })
-        .catch(function () {
-          salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
-          iv = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
-          initialized = true
-          saltPublished = false
-          console.log('Created new: Salt=' + salt + ' IV=' + iv)
+        .catch(function (error) {
+          if (error.name === 'HoodieNotFoundError') {
+            salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
+            iv = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
+            initialized = true
+            saltPublished = false
+            console.log('Created new: Salt=' + salt + ' IV=' + iv)
+          } else {
+            throw error
+          }
         })
       },
 
@@ -133,6 +139,13 @@
       // The user needs to be already signed in in order to do so.
       // Returns a Promise.
       publishSalt: function () {
+        if (!initialized || !salt || !iv) {
+          throw new Error('Need to initialize the Encryption object first.')
+        }
+        if (hoodie.account.username === undefined) {
+          throw new Error('Need to sign in to Hoodie first.')
+        }
+
         if (saltPublished) {
           return hoodie.global.find('global-salts', usernameSha1)
         }
@@ -152,7 +165,7 @@
       // Returns the HMAC for authentication at the server
       authWithPassword: function (password) {
         var hmacSHA1
-        var masterkey
+        var key
 
         if (!initialized || !salt) {
           throw new Error('Need to initialize the Encryption object first.')
@@ -170,7 +183,7 @@
         }
 
         // perform PBKDF to derive Master Key
-        masterkey = sjcl.codec.hex.fromBits(
+        key = sjcl.codec.hex.fromBits(
           sjcl.misc.pbkdf2(
             password,
             sjcl.codec.hex.toBits(salt),
@@ -179,19 +192,55 @@
             hmacSHA1
           )
         )
-        return this.authWithMasterKey(masterkey)
+        console.log('authWithPassword: derived master key: ' + key)
+        return this.authWithMasterKey(key)
       },
 
-      authWithMasterKey: function (masterkey) {
+      // Authenticates with master key
+      // Returns the HMAC for authentication at the server
+      authWithMasterKey: function (key) {
         var hmac
         var SjclHmac = sjcl.misc.hmac
 
+        // Set master key
+        masterkey = key
+
         // Generate HMAC
         hmac = sjcl.codec.hex.fromBits((new SjclHmac(
-          sjcl.codec.hex.toBits(masterkey),
+          sjcl.codec.hex.toBits(key),
           sjcl.hash.sha256
         ).mac(salt)))
+        console.log('authWithMasterKey: derived HMAC: ' + hmac)
         return hmac
+      },
+
+      // Prepares encryption by initializing the encryption key.
+      // Returns a Promise.
+      enableEncryption: function () {
+        if (!initialized || !iv) {
+          throw new Error('Need to initialize the Encryption object first.')
+        }
+        if (!masterkey) {
+          throw new Error('Need to authWithPassword or authWithMasterKey first.')
+        }
+        if (hoodie.account.username === undefined) {
+          throw new Error('Need to sign in to Hoodie first.')
+        }
+
+        // Fetch encrypted Encryption Key from user store
+        hoodie.store.find('encryption-meta', 'current')
+        .then(function (result) {
+          console.log('Found current encryption-meta item:')
+          console.log(result)
+          // TODO Unencrypt Encryption Key
+        })
+        .catch(function (error) {
+          if (error.name === 'HoodieNotFoundError') {
+            // TODO Init new Encryption Key and persist it to user store
+          } else {
+            throw error
+          }
+        })
       }
 
       // TODO Check if saltPublished prior to encrypt anything
