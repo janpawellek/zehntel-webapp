@@ -79,25 +79,30 @@
   Encryption = (function () {
     var usernameSha1
     var salt
-    var iv
     var masterkey
+    var encryptionkey
 
     // internal state variables
     var initialized = false
     var saltPublished = false
+    var enckeyPublished = false
 
-    // encryption consts
+    // encryption settings
+    var Hmac = sjcl.misc.hmac
+    var Aes = sjcl.cipher.aes
     var keySize = 256
+    var adataSize = 32
     var pbkdfIterations = 2048
 
     return {
       reset: function () {
         usernameSha1 = undefined
         salt = undefined
-        iv = undefined
         masterkey = undefined
+        encryptionkey = undefined
         initialized = false
         saltPublished = false
+        enckeyPublished = false
         console.log('Encryption reset')
       },
 
@@ -105,41 +110,39 @@
         return !!initialized
       },
 
-      // Initializes the Encryption object with Salt and IV.
+      // Initializes the Encryption object with Salt
       // Returns a Promise.
       init: function (username) {
         if (initialized) {
           this.reset()
         }
-        // Fetch Salt and IV or init them randomly
+        // Fetch Salt or init it randomly
         usernameSha1 = sjcl.codec.hex.fromBits(sjcl.hash.sha1.hash(username))
         console.log('Encryption init. usernameSha1=' + usernameSha1)
         return hoodie.global.find('global-salts', usernameSha1)
         .then(function (result) {
           salt = result.salt
-          iv = result.iv
           initialized = true
           saltPublished = true
-          console.log('Fetched from global salts: Salt=' + salt + ' IV=' + iv)
+          console.log('Fetched from global salts: Salt=' + salt)
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
             salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
-            iv = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
             initialized = true
             saltPublished = false
-            console.log('Created new: Salt=' + salt + ' IV=' + iv)
+            console.log('Created new: Salt=' + salt)
           } else {
             throw error
           }
         })
       },
 
-      // Publishes Salt and IV into the global-salts store.
+      // Publishes Salt into the global-salts store.
       // The user needs to be already signed in in order to do so.
       // Returns a Promise.
       publishSalt: function () {
-        if (!initialized || !salt || !iv) {
+        if (!initialized || !salt) {
           throw new Error('Need to initialize the Encryption object first.')
         }
         if (hoodie.account.username === undefined) {
@@ -149,15 +152,17 @@
         if (saltPublished) {
           return hoodie.global.find('global-salts', usernameSha1)
         }
-        console.log('Publish to global salts: Salt=' + salt + ' IV=' + iv)
+        console.log('Publish to global salts: Salt=' + salt)
         return hoodie.store.add('global-salts', {
           $public: true,
           id: usernameSha1,
-          salt: salt,
-          iv: iv
+          salt: salt
         })
         .then(function () {
           saltPublished = true
+        })
+        .fail(function (error) {
+          throw error
         })
       },
 
@@ -175,8 +180,7 @@
         }
 
         hmacSHA1 = function (key) {
-          var SjclHmac = sjcl.misc.hmac
-          var hasher = new SjclHmac(key, sjcl.hash.sha1)
+          var hasher = new Hmac(key, sjcl.hash.sha1)
           this.encrypt = function () {
             return hasher.encrypt.apply(hasher, arguments)
           }
@@ -200,13 +204,10 @@
       // Returns the HMAC for authentication at the server
       authWithMasterKey: function (key) {
         var hmac
-        var SjclHmac = sjcl.misc.hmac
-
-        // Set master key
+        // Store master key internally
         masterkey = key
-
         // Generate HMAC
-        hmac = sjcl.codec.hex.fromBits((new SjclHmac(
+        hmac = sjcl.codec.hex.fromBits((new Hmac(
           sjcl.codec.hex.toBits(key),
           sjcl.hash.sha256
         ).mac(salt)))
@@ -217,7 +218,13 @@
       // Prepares encryption by initializing the encryption key.
       // Returns a Promise.
       enableEncryption: function () {
-        if (!initialized || !iv) {
+        var prp
+        var iv
+        var adata
+        var enckeybits // encryption key as bit array
+        var enckeyenc // encryption key encrypted
+
+        if (!initialized) {
           throw new Error('Need to initialize the Encryption object first.')
         }
         if (!masterkey) {
@@ -228,22 +235,60 @@
         }
 
         // Fetch encrypted Encryption Key from user store
-        hoodie.store.find('encryption-meta', 'current')
+        return hoodie.store.find('encryption-meta', 'current')
         .then(function (result) {
           console.log('Found current encryption-meta item:')
           console.log(result)
-          // TODO Unencrypt Encryption Key
+          // Unencrypt Encryption Key
+          prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+          encryptionkey = sjcl.codec.hex.fromBits(sjcl.mode.gcm.decrypt(
+            prp,
+            sjcl.codec.hex.toBits(result.enckeyenc),
+            sjcl.codec.hex.toBits(result.iv),
+            sjcl.codec.hex.toBits(result.adata)
+          ))
+          console.log('Decrypted encryption key: ' + encryptionkey)
+          enckeyPublished = true
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
-            // TODO Init new Encryption Key and persist it to user store
+            // Init new Encryption Key and persist it to user store
+            prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+            enckeybits = sjcl.random.randomWords(keySize / 32)
+            iv = sjcl.random.randomWords(keySize / 32)
+            adata = sjcl.random.randomWords(adataSize / 32)
+            enckeyenc = sjcl.mode.gcm.encrypt(prp, enckeybits, iv, adata)
+            console.log('Init new Encryption Key:' +
+              ' enckey: ' + sjcl.codec.hex.fromBits(enckeybits) +
+              ' iv: ' + sjcl.codec.hex.fromBits(iv) +
+              ' adata: ' + sjcl.codec.hex.fromBits(adata) +
+              ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
+            )
+
+            hoodie.store.add('encryption-meta', {
+              id: 'current',
+              version: 1,
+              iv: sjcl.codec.hex.fromBits(iv),
+              adata: sjcl.codec.hex.fromBits(adata),
+              enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
+            })
+            .then(function () {
+              enckeyPublished = true
+              console.log('Published enckey: ' + enckeyPublished)
+            })
+            .fail(function (error) {
+              throw error
+            })
+
+            // Store encryption key internally
+            encryptionkey = sjcl.codec.hex.fromBits(enckeybits)
           } else {
             throw error
           }
         })
       }
 
-      // TODO Check if saltPublished prior to encrypt anything
+      // TODO Check if saltPublished and enckeyPublished prior to encrypt anything
     }
   })()
 
@@ -650,7 +695,7 @@
     var passwordRepeat = $('#loginPasswordRepeat').val()
     var email = $('#loginEmail').val()
     var signInOrUp = function (moveData) {
-      // Initialize Encryption (salt and iv) if not done yet
+      // Initialize Encryption (salt) if not done yet
       if (!Encryption.isInitialized()) {
         Encryption.init(username)
         .then(function () {
@@ -693,14 +738,14 @@
         .done(
           function () {
             // signup successful
-            // publish salt and iv
+            // publish salt
             Encryption.publishSalt()
             .then(function () {
               setLoggedIn(true)
             })
             .fail(function (error) {
               showHoodieError(error.message)
-              // emergency sign out since salt and iv could not be saved
+              // emergency sign out since salt could not be saved
               hoodie.account.signOut()
               .done(
                 function () {
