@@ -84,8 +84,8 @@
 
     // internal state variables
     var initialized = false
-    var saltPublished = false
-    var enckeyPublished = false
+    var saltStored = false
+    var enckeyStored = false
 
     // encryption settings
     var Hmac = sjcl.misc.hmac
@@ -101,8 +101,8 @@
         masterkey = undefined
         encryptionkey = undefined
         initialized = false
-        saltPublished = false
-        enckeyPublished = false
+        saltStored = false
+        enckeyStored = false
         console.log('Encryption reset')
       },
 
@@ -123,14 +123,14 @@
         .then(function (result) {
           salt = result.salt
           initialized = true
-          saltPublished = true
+          saltStored = true
           console.log('Fetched from global salts: Salt=' + salt)
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
             salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
             initialized = true
-            saltPublished = false
+            saltStored = false
             console.log('Created new: Salt=' + salt)
           } else {
             throw error
@@ -149,7 +149,7 @@
           throw new Error('Need to sign in to Hoodie first.')
         }
 
-        if (saltPublished) {
+        if (saltStored) {
           return hoodie.global.find('global-salts', usernameSha1)
         }
         console.log('Publish to global salts: Salt=' + salt)
@@ -159,7 +159,7 @@
           salt: salt
         })
         .then(function () {
-          saltPublished = true
+          saltStored = true
         })
         .fail(function (error) {
           throw error
@@ -248,47 +248,146 @@
             sjcl.codec.hex.toBits(result.adata)
           ))
           console.log('Decrypted encryption key: ' + encryptionkey)
-          enckeyPublished = true
+          enckeyStored = true
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
-            // Init new Encryption Key and persist it to user store
+            // Init new Encryption Key
             prp = new Aes(sjcl.codec.hex.toBits(masterkey))
             enckeybits = sjcl.random.randomWords(keySize / 32)
             iv = sjcl.random.randomWords(keySize / 32)
             adata = sjcl.random.randomWords(adataSize / 32)
             enckeyenc = sjcl.mode.gcm.encrypt(prp, enckeybits, iv, adata)
+            // Store encryption key internally
+            encryptionkey = sjcl.codec.hex.fromBits(enckeybits)
             console.log('Init new Encryption Key:' +
-              ' enckey: ' + sjcl.codec.hex.fromBits(enckeybits) +
+              ' enckey: ' + encryptionkey +
               ' iv: ' + sjcl.codec.hex.fromBits(iv) +
               ' adata: ' + sjcl.codec.hex.fromBits(adata) +
               ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
             )
 
+            // Persist the encypted encryption key into user store
             hoodie.store.add('encryption-meta', {
               id: 'current',
-              version: 1,
               iv: sjcl.codec.hex.fromBits(iv),
               adata: sjcl.codec.hex.fromBits(adata),
               enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
             })
             .then(function () {
-              enckeyPublished = true
-              console.log('Published enckey: ' + enckeyPublished)
+              enckeyStored = true
+              console.log('Stored enckey: ' + enckeyStored)
             })
             .fail(function (error) {
               throw error
             })
-
-            // Store encryption key internally
-            encryptionkey = sjcl.codec.hex.fromBits(enckeybits)
           } else {
             throw error
           }
         })
-      }
+      },
 
-      // TODO Check if saltPublished and enckeyPublished prior to encrypt anything
+      // Encrypts all properties of the item (except the id property!).
+      // Returns the encrypted item which can then be savely stored in hoodie.store.
+      encrypt: function (item) {
+        var prp
+        var iv
+        var adata
+        var encrypted
+
+        // Check if saltStored and enckeyStored prior to encrypt anything
+        if (!saltStored) {
+          throw new Error('Need to store salt prior to encrypt anything.')
+        }
+        if (!enckeyStored) {
+          throw new Error('Need to store encryption key prior to encrypt anything.')
+        }
+
+        // Create new encrypted item
+        prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+        iv = sjcl.random.randomWords(keySize / 32)
+        adata = sjcl.random.randomWords(adataSize / 32)
+        encrypted = {
+          iv: sjcl.codec.hex.fromBits(iv),
+          adata: sjcl.codec.hex.fromBits(adata),
+          encryptedProperties: []
+        }
+
+        // Encrypt all properties (except id)
+        for (var property in item) {
+          if (item.hasOwnProperty(property)) {
+            if (property === 'id') {
+              encrypted.id = item.id
+              continue
+            }
+            encrypted[property] = sjcl.codec.hex.fromBits(
+              sjcl.mode.gcm.encrypt(
+                prp,
+                sjcl.codec.utf8String.toBits(item[property]),
+                iv,
+                adata
+              )
+            )
+            encrypted.encryptedProperties.push(property)
+          }
+        }
+        console.log('ENCRYPTION:')
+        console.log('  item:')
+        console.log(item)
+        console.log('  encrypted:')
+        console.log(encrypted)
+        return encrypted
+      },
+
+      // Decrypts the item and returns the decrypted item.
+      decrypt: function (item) {
+        var prp
+        var iv
+        var adata
+        var decrypted
+
+        // Check if saltStored and enckeyStored prior to decrypt anything
+        if (!saltStored) {
+          throw new Error('Need to store salt prior to decrypt anything.')
+        }
+        if (!enckeyStored) {
+          throw new Error('Need to store encryption key prior to decrypt anything.')
+        }
+        if (!item.encryptedProperties) {
+          console.warn('Trying do decrypt an item which is not encrypted:')
+          console.warn(item)
+        }
+
+        // Create new decrypted item
+        prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+        iv = item.iv
+        adata = item.adata
+        decrypted = {}
+
+        // Decrypt all encrypted properties
+        for (var property in item) {
+          if (item.hasOwnProperty(property)) {
+            if (item.encryptedProperties && item.encryptedProperties.indexOf(property) !== -1) {
+              decrypted[property] = sjcl.codec.utf8String.fromBits(
+                sjcl.mode.gcm.decrypt(
+                  prp,
+                  sjcl.codec.hex.toBits(item[property]),
+                  sjcl.codec.hex.toBits(iv),
+                  sjcl.codec.hex.toBits(adata)
+                )
+              )
+            } else {
+              decrypted[property] = item[property]
+            }
+          }
+        }
+        console.log('DECRYPTION:')
+        console.log('  item:')
+        console.log(item)
+        console.log('  decrypted:')
+        console.log(decrypted)
+        return decrypted
+      }
     }
   })()
 
@@ -413,12 +512,12 @@
             strAmount = 0.0
           }
 
-          hoodie.store.update(toedittype, tosaveid, {
+          hoodie.store.update(toedittype, tosaveid, Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strAmount,
             updated: moment().toDate()
-          }).fail(function (error) {
+          })).fail(function (error) {
             showHoodieError(error.message)
           })
         })
@@ -528,7 +627,9 @@
     // helper function to load all transactions from the store
     var loadTransactions = function () {
       hoodie.store.findAll(basename + 'item').then(function (items) {
-        items.forEach(function (transaction) { addTransaction(transaction, false) })
+        items.forEach(function (transaction) {
+          addTransaction(Encryption.decrypt(transaction), false)
+        })
         if (items.length) {
           transactions.repaint()
         }
@@ -542,20 +643,26 @@
     this.transactions = transactions
 
     // when a transaction changes, update the UI
-    hoodie.store.on(this.basename + 'item:add', function (transaction) { addTransaction(transaction, true) })
-    hoodie.store.on(this.basename + 'item:update', this.transactions.update)
-    hoodie.store.on(this.basename + 'item:remove', this.transactions.remove)
+    hoodie.store.on(this.basename + 'item:add', function (transaction) {
+      addTransaction(Encryption.decrypt(transaction), true)
+    })
+    hoodie.store.on(this.basename + 'item:update', function (transaction) {
+      this.transactions.update(Encryption.decrypt(transaction))
+    })
+    hoodie.store.on(this.basename + 'item:remove', function (transaction) {
+      this.transactions.remove(Encryption.decrypt(transaction))
+    })
     // clear items when user logs out
     hoodie.account.on('signup signin signout', this.transactions.clear)
 
     // load the "memo to myself"
     hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
-      memo = item
+      memo = Encryption.decrypt(item)
       $('#' + basename + '-memo-change').addClass('hidden')
       $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-      $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(item.amount))
+      $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(memo.amount))
       $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-      $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount))
+      $('#' + basename + '-memo').autoNumeric('set', escapeHtml(memo.amount))
       $('#' + basename + '-memo-show').removeClass('hidden')
     })
     this.memo = memo
@@ -569,8 +676,12 @@
       $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount))
       $('#' + basename + '-memo-show').removeClass('hidden')
     }
-    hoodie.store.on(this.basename + 'memo:add', this.updateMemo)
-    hoodie.store.on(this.basename + 'memo:update', this.updateMemo)
+    hoodie.store.on(this.basename + 'memo:add', function (item) {
+      this.updateMemo(Encryption.decrypt(item))
+    })
+    hoodie.store.on(this.basename + 'memo:update', function (item) {
+      this.updateMemo(Encryption.decrypt(item))
+    })
 
     // handle click on change memo link
     $('#' + this.basename + '-memo-changeit').on('click', function (event) {
@@ -599,10 +710,10 @@
 
       // save the "memo to myself"
       if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
-        hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', {
+        hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', Encryption.encrypt({
           amount: strMemo,
           updated: moment().toDate()
-        })
+        }))
         .fail(function (error) {
           showHoodieError(error.message)
         })
@@ -636,11 +747,11 @@
         }
 
         // persist new item
-        hoodie.store.add(basename + 'item', {
+        hoodie.store.add(basename + 'item', Encryption.encrypt({
           date: strDate,
           subject: strSubject,
           amount: strAmount
-        })
+        }))
         .fail(function (error) {
           showHoodieError(error.message)
         })
@@ -691,10 +802,12 @@
   $('#loginForm').submit(function (event) {
     event.preventDefault()
     var username = $('#loginName').val()
-    var password = $('#loginPassword').val()
-    var passwordRepeat = $('#loginPasswordRepeat').val()
+    var password = $('#loginPassword').val() // should never be sent
+    var passwordRepeat = $('#loginPasswordRepeat').val() // should never be sent
     var email = $('#loginEmail').val()
     var signInOrUp = function (moveData) {
+      var hmac
+
       // Initialize Encryption (salt) if not done yet
       if (!Encryption.isInitialized()) {
         Encryption.init(username)
@@ -734,14 +847,20 @@
           })
           return
         }
-        hoodie.account.signUp(username, password, {moveData: moveData})
+        // Compute HMAC to authorize (never send the password to Hoodie!)
+        hmac = Encryption.authWithPassword(password)
+        hoodie.account.signUp(username, hmac, {moveData: moveData})
         .done(
           function () {
             // signup successful
             // publish salt
             Encryption.publishSalt()
             .then(function () {
-              setLoggedIn(true)
+              // enable encryption
+              Encryption.enableEncryption()
+              .then(function () {
+                setLoggedIn(true)
+              })
             })
             .fail(function (error) {
               showHoodieError(error.message)
@@ -785,11 +904,15 @@
         )
       } else {
         // sign in using existing credentials
-        hoodie.account.signIn(username, password, {moveData: moveData})
+        hmac = Encryption.authWithPassword(password)
+        hoodie.account.signIn(username, hmac, {moveData: moveData})
         .done(
           function () {
-            // login successful
-            setLoggedIn(true)
+            // login successful, enable encryption
+            Encryption.enableEncryption()
+            .then(function () {
+              setLoggedIn(true)
+            })
           }
         )
         .fail(
@@ -839,9 +962,10 @@
     setLoggedIn(false)
   })
 
+  /* TODO Check if we need this - enableEncryption in that case
   hoodie.account.on('signin signup', function () {
     setLoggedIn(true)
-  })
+  })*/
 
   $('#loginModal').on('hidden.bs.modal', function () {
     // empty password fields on modal close
@@ -1043,7 +1167,7 @@
 
       // check if there is a previous item with the same amount - if so, fill all input forms with the last values
       hoodie.store.findAll(function (object) {
-        return object.type === 'income' && object.amount === $('#income-amount').autoNumeric('get')
+        return object.type === 'income' && Encryption.decrypt(object).amount === $('#income-amount').autoNumeric('get')
       })
       .done(function (sameAmountItems) {
         if (sameAmountItems.length > 0) {
@@ -1054,55 +1178,55 @@
 
           // set income-spend field
           hoodie.store.findAll(function (object) {
-            return object.type === 'spenditem' && object.income === lastid
+            return object.type === 'spenditem' && Encryption.decrypt(object).income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
-              $('#income-spend').autoNumeric('set', escapeHtml(items[0].amount))
+              $('#income-spend').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
             }
           })
 
           // set income-contracts field
           hoodie.store.findAll(function (object) {
-            return object.type === 'contractsitem' && object.income === lastid
+            return object.type === 'contractsitem' && Encryption.decrypt(object).income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
-              $('#income-contracts').autoNumeric('set', escapeHtml(items[0].amount))
+              $('#income-contracts').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
             }
           })
 
           // set income-save field
           hoodie.store.findAll(function (object) {
-            return object.type === 'saveitem' && object.income === lastid
+            return object.type === 'saveitem' && Encryption.decrypt(object).income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
-              $('#income-save').autoNumeric('set', escapeHtml(items[0].amount))
+              $('#income-save').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
             }
           })
 
           // set income-invest field
           hoodie.store.findAll(function (object) {
-            return object.type === 'investitem' && object.income === lastid
+            return object.type === 'investitem' && Encryption.decrypt(object).income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
-              $('#income-invest').autoNumeric('set', escapeHtml(items[0].amount))
+              $('#income-invest').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
             }
           })
 
           // set income-give field
           hoodie.store.findAll(function (object) {
-            return object.type === 'giveitem' && object.income === lastid
+            return object.type === 'giveitem' && Encryption.decrypt(object).income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
-              $('#income-give').autoNumeric('set', escapeHtml(items[0].amount))
+              $('#income-give').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
             }
           })
@@ -1173,65 +1297,65 @@
       }
 
       // add to Hoodie store
-      hoodie.store.add('income', {
+      hoodie.store.add('income', Encryption.encrypt({
         date: strDate,
         subject: strSubject,
         amount: strAmount
-      })
+      }))
       .done(function (income) {
         incomeId = income.id
 
         if (strSpend > 0) {
-          hoodie.store.add('spenditem', {
+          hoodie.store.add('spenditem', Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strSpend,
             income: incomeId
-          })
+          }))
           .fail(function (error) {
             showHoodieError(error.message)
           })
         }
         if (strContracts > 0) {
-          hoodie.store.add('contractsitem', {
+          hoodie.store.add('contractsitem', Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strContracts,
             income: incomeId
-          })
+          }))
           .fail(function (error) {
             showHoodieError(error.message)
           })
         }
         if (strSave > 0) {
-          hoodie.store.add('saveitem', {
+          hoodie.store.add('saveitem', Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strSave,
             income: incomeId
-          })
+          }))
           .fail(function (error) {
             showHoodieError(error.message)
           })
         }
         if (strInvest > 0) {
-          hoodie.store.add('investitem', {
+          hoodie.store.add('investitem', Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strInvest,
             income: incomeId
-          })
+          }))
           .fail(function (error) {
             showHoodieError(error.message)
           })
         }
         if (strGive > 0) {
-          hoodie.store.add('giveitem', {
+          hoodie.store.add('giveitem', Encryption.encrypt({
             date: strDate,
             subject: strSubject,
             amount: strGive,
             income: incomeId
-          })
+          }))
           .fail(function (error) {
             showHoodieError(error.message)
           })
@@ -1260,12 +1384,15 @@
     budgets.push(new Budget('invest'))
     budgets.push(new Budget('give'))
 
-    // set initial login/logout state
+    // set initial state to logged off (since we need authentication to decrypt)
+    setLoggedIn(false)
+
+    /* TODO check if we need this instead
     if (hoodie.account.username === undefined) {
       setLoggedIn(false)
     } else {
       setLoggedIn(true)
-    }
+    }*/
 
     $('.onHoodieReadyHide').addClass('hidden')
     $('.onHoodieReadyShow').removeClass('hidden')
