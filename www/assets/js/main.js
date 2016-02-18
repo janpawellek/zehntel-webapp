@@ -302,9 +302,12 @@
         if (!enckeyStored) {
           throw new Error('Need to store encryption key prior to encrypt anything.')
         }
+        if (!encryptionkey) {
+          throw new Error('Encryption key is empty.')
+        }
 
         // Create new encrypted item
-        prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+        prp = new Aes(sjcl.codec.hex.toBits(encryptionkey))
         iv = sjcl.random.randomWords(keySize / 32)
         adata = sjcl.random.randomWords(adataSize / 32)
         encrypted = {
@@ -359,7 +362,7 @@
         }
 
         // Create new decrypted item
-        prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+        prp = new Aes(sjcl.codec.hex.toBits(encryptionkey))
         iv = item.iv
         adata = item.adata
         decrypted = {}
