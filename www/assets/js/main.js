@@ -342,6 +342,18 @@
         return encrypted
       },
 
+      // Encrypts an item (if signed in) or marks the item to be encrypted
+      // as soon as the user signes in.
+      // Returns the (potentially unencrypted!) item.
+      encryptIfSignedIn: function (item) {
+        if (hoodie.account.username || saltStored || enckeyStored) {
+          return this.encrypt(item)
+        } else {
+          item.preSignIn = true
+          return item
+        }
+      },
+
       // Decrypts the item and returns the decrypted item.
       decrypt: function (item) {
         var prp
@@ -390,6 +402,18 @@
         console.log('  decrypted:')
         console.log(decrypted)
         return decrypted
+      },
+
+      // Returns the decrypted item if the user is signed in.
+      // Returns unencrypted items as they are if the user is not signed in.
+      // Returns undefined if an encrypted item can not (yet) be encrypted.
+      decryptIfSignedIn: function (item) {
+        // Just return the item if it's not encrypted
+        if (hoodie.account.username === undefined && !item.encryptedProperties) {
+          return item
+        } else if (!saltStored || !enckeyStored) {
+          return undefined
+        } else return this.decrypt(item)
       }
     }
   })()
@@ -515,7 +539,7 @@
             strAmount = 0.0
           }
 
-          hoodie.store.update(toedittype, tosaveid, Encryption.encrypt({
+          hoodie.store.update(toedittype, tosaveid, Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strAmount,
@@ -631,7 +655,10 @@
     var loadTransactions = function () {
       hoodie.store.findAll(basename + 'item').then(function (items) {
         items.forEach(function (transaction) {
-          addTransaction(Encryption.decrypt(transaction), false)
+          var decrypted = Encryption.decryptIfSignedIn(transaction)
+          if (decrypted) {
+            addTransaction(decrypted, false)
+          }
         })
         if (items.length) {
           transactions.repaint()
@@ -647,26 +674,37 @@
 
     // when a transaction changes, update the UI
     hoodie.store.on(this.basename + 'item:add', function (transaction) {
-      addTransaction(Encryption.decrypt(transaction), true)
+      var decrypted = Encryption.decryptIfSignedIn(transaction)
+      if (decrypted) {
+        addTransaction(decrypted, true)
+      }
     })
     hoodie.store.on(this.basename + 'item:update', function (transaction) {
-      this.transactions.update(Encryption.decrypt(transaction))
+      var decrypted = Encryption.decryptIfSignedIn(transaction)
+      if (decrypted) {
+        this.transactions.update(decrypted)
+      }
     })
     hoodie.store.on(this.basename + 'item:remove', function (transaction) {
-      this.transactions.remove(Encryption.decrypt(transaction))
+      var decrypted = Encryption.decryptIfSignedIn(transaction)
+      if (decrypted) {
+        this.transactions.remove(decrypted)
+      }
     })
     // clear items when user logs out
     hoodie.account.on('signup signin signout', this.transactions.clear)
 
     // load the "memo to myself"
     hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
-      memo = Encryption.decrypt(item)
-      $('#' + basename + '-memo-change').addClass('hidden')
-      $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-      $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(memo.amount))
-      $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-      $('#' + basename + '-memo').autoNumeric('set', escapeHtml(memo.amount))
-      $('#' + basename + '-memo-show').removeClass('hidden')
+      memo = Encryption.decryptIfSignedIn(item)
+      if (memo) {
+        $('#' + basename + '-memo-change').addClass('hidden')
+        $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+        $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(memo.amount))
+        $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+        $('#' + basename + '-memo').autoNumeric('set', escapeHtml(memo.amount))
+        $('#' + basename + '-memo-show').removeClass('hidden')
+      }
     })
     this.memo = memo
 
@@ -679,11 +717,11 @@
       $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount))
       $('#' + basename + '-memo-show').removeClass('hidden')
     }
-    hoodie.store.on(this.basename + 'memo:add', function (item) {
-      this.updateMemo(Encryption.decrypt(item))
-    })
-    hoodie.store.on(this.basename + 'memo:update', function (item) {
-      this.updateMemo(Encryption.decrypt(item))
+    hoodie.store.on(this.basename + 'memo:add ' + this.basename + 'memo:update', function (item) {
+      var decrypted = Encryption.decryptIfSignedIn(item)
+      if (decrypted) {
+        this.updateMemo(decrypted)
+      }
     })
 
     // handle click on change memo link
@@ -713,7 +751,7 @@
 
       // save the "memo to myself"
       if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
-        hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', Encryption.encrypt({
+        hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', Encryption.encryptIfSignedIn({
           amount: strMemo,
           updated: moment().toDate()
         }))
@@ -750,7 +788,7 @@
         }
 
         // persist new item
-        hoodie.store.add(basename + 'item', Encryption.encrypt({
+        hoodie.store.add(basename + 'item', Encryption.encryptIfSignedIn({
           date: strDate,
           subject: strSubject,
           amount: strAmount
@@ -1170,7 +1208,11 @@
 
       // check if there is a previous item with the same amount - if so, fill all input forms with the last values
       hoodie.store.findAll(function (object) {
-        return object.type === 'income' && Encryption.decrypt(object).amount === $('#income-amount').autoNumeric('get')
+        if (object.type !== 'income') {
+          return false
+        }
+        var decrypted = Encryption.decryptIfSignedIn(object)
+        return decrypted && decrypted.amount === $('#income-amount').autoNumeric('get')
       })
       .done(function (sameAmountItems) {
         if (sameAmountItems.length > 0) {
@@ -1181,7 +1223,11 @@
 
           // set income-spend field
           hoodie.store.findAll(function (object) {
-            return object.type === 'spenditem' && Encryption.decrypt(object).income === lastid
+            if ((object.type) !== 'spenditem') {
+              return false
+            }
+            var decrypted = Encryption.decryptIfSignedIn(object)
+            return decrypted && decrypted.income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
@@ -1192,7 +1238,11 @@
 
           // set income-contracts field
           hoodie.store.findAll(function (object) {
-            return object.type === 'contractsitem' && Encryption.decrypt(object).income === lastid
+            if ((object.type) !== 'contractsitem') {
+              return false
+            }
+            var decrypted = Encryption.decryptIfSignedIn(object)
+            return decrypted && decrypted.income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
@@ -1203,7 +1253,11 @@
 
           // set income-save field
           hoodie.store.findAll(function (object) {
-            return object.type === 'saveitem' && Encryption.decrypt(object).income === lastid
+            if ((object.type) !== 'saveitem') {
+              return false
+            }
+            var decrypted = Encryption.decryptIfSignedIn(object)
+            return decrypted && decrypted.income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
@@ -1214,7 +1268,11 @@
 
           // set income-invest field
           hoodie.store.findAll(function (object) {
-            return object.type === 'investitem' && Encryption.decrypt(object).income === lastid
+            if ((object.type) !== 'investitem') {
+              return false
+            }
+            var decrypted = Encryption.decryptIfSignedIn(object)
+            return decrypted && decrypted.income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
@@ -1225,7 +1283,11 @@
 
           // set income-give field
           hoodie.store.findAll(function (object) {
-            return object.type === 'giveitem' && Encryption.decrypt(object).income === lastid
+            if ((object.type) !== 'giveitem') {
+              return false
+            }
+            var decrypted = Encryption.decryptIfSignedIn(object)
+            return decrypted && decrypted.income === lastid
           })
           .done(function (items) {
             if (items.length > 0) {
@@ -1300,7 +1362,7 @@
       }
 
       // add to Hoodie store
-      hoodie.store.add('income', Encryption.encrypt({
+      hoodie.store.add('income', Encryption.encryptIfSignedIn({
         date: strDate,
         subject: strSubject,
         amount: strAmount
@@ -1309,7 +1371,7 @@
         incomeId = income.id
 
         if (strSpend > 0) {
-          hoodie.store.add('spenditem', Encryption.encrypt({
+          hoodie.store.add('spenditem', Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strSpend,
@@ -1320,7 +1382,7 @@
           })
         }
         if (strContracts > 0) {
-          hoodie.store.add('contractsitem', Encryption.encrypt({
+          hoodie.store.add('contractsitem', Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strContracts,
@@ -1331,7 +1393,7 @@
           })
         }
         if (strSave > 0) {
-          hoodie.store.add('saveitem', Encryption.encrypt({
+          hoodie.store.add('saveitem', Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strSave,
@@ -1342,7 +1404,7 @@
           })
         }
         if (strInvest > 0) {
-          hoodie.store.add('investitem', Encryption.encrypt({
+          hoodie.store.add('investitem', Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strInvest,
@@ -1353,7 +1415,7 @@
           })
         }
         if (strGive > 0) {
-          hoodie.store.add('giveitem', Encryption.encrypt({
+          hoodie.store.add('giveitem', Encryption.encryptIfSignedIn({
             date: strDate,
             subject: strSubject,
             amount: strGive,
