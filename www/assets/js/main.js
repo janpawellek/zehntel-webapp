@@ -336,11 +336,6 @@
             encrypted.encryptedProperties.push(property)
           }
         }
-        console.log('ENCRYPTION:')
-        console.log('  item:')
-        console.log(item)
-        console.log('  encrypted:')
-        console.log(encrypted)
         return encrypted
       },
 
@@ -384,6 +379,9 @@
         // Decrypt all encrypted properties
         for (var property in item) {
           if (item.hasOwnProperty(property)) {
+            if (property === 'adata' || property === 'encryptedProperties' || property === 'iv') {
+              continue
+            }
             if (item.encryptedProperties && item.encryptedProperties.indexOf(property) !== -1) {
               decrypted[property] = sjcl.codec.utf8String.fromBits(
                 sjcl.mode.gcm.decrypt(
@@ -398,11 +396,6 @@
             }
           }
         }
-        console.log('DECRYPTION:')
-        console.log('  item:')
-        console.log(item)
-        console.log('  decrypted:')
-        console.log(decrypted)
         return decrypted
       },
 
