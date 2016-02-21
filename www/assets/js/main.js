@@ -249,6 +249,7 @@
           ))
           console.log('Decrypted encryption key: ' + encryptionkey)
           enckeyStored = true
+          hoodie.trigger('encryptionReady')
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
@@ -276,6 +277,7 @@
             })
             .then(function () {
               enckeyStored = true
+              hoodie.trigger('encryptionReady')
               console.log('Stored enckey: ' + enckeyStored)
             })
             .fail(function (error) {
@@ -419,7 +421,7 @@
   })()
 
   // TRANSACTIONS ---------------------------------
-  // Generic class for Transactions
+  // Generic object for Transactions
   Transactions = function ($element) {
     var collection = []
     var $el = $element
@@ -636,10 +638,9 @@
   }
 
   // BUDGET ------------------------------------------
-  // Generic class for a Zehntel Budget
+  // Generic object for a Zehntel Budget
   Budget = function (basename) {
-    this.basename = basename
-    var transactions = new Transactions($('#' + this.basename + '-transactions'))
+    var transactions = new Transactions($('#' + basename + '-transactions'))
     var memo
 
     // helper function to toggle onEmpty classes
@@ -670,46 +671,35 @@
 
     // initial load of all transactions from the store
     loadTransactions()
-    this.transactions = transactions
 
     // when a transaction changes, update the UI
-    hoodie.store.on(this.basename + 'item:add', function (transaction) {
+    hoodie.store.on(basename + 'item:add', function (transaction) {
       var decrypted = Encryption.decryptIfSignedIn(transaction)
       if (decrypted) {
         addTransaction(decrypted, true)
       }
     })
-    hoodie.store.on(this.basename + 'item:update', function (transaction) {
+    hoodie.store.on(basename + 'item:update', function (transaction) {
       var decrypted = Encryption.decryptIfSignedIn(transaction)
       if (decrypted) {
-        this.transactions.update(decrypted)
+        transactions.update(decrypted)
       }
     })
-    hoodie.store.on(this.basename + 'item:remove', function (transaction) {
+    hoodie.store.on(basename + 'item:remove', function (transaction) {
       var decrypted = Encryption.decryptIfSignedIn(transaction)
       if (decrypted) {
-        this.transactions.remove(decrypted)
+        transactions.remove(decrypted)
       }
     })
     // clear items when user logs out
-    hoodie.account.on('signup signin signout', this.transactions.clear)
-
-    // load the "memo to myself"
-    hoodie.store.find(this.basename + 'memo', this.basename + 'memo').done(function (item) {
-      memo = Encryption.decryptIfSignedIn(item)
-      if (memo) {
-        $('#' + basename + '-memo-change').addClass('hidden')
-        $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-        $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(memo.amount))
-        $('#' + basename + '-memo').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
-        $('#' + basename + '-memo').autoNumeric('set', escapeHtml(memo.amount))
-        $('#' + basename + '-memo-show').removeClass('hidden')
-      }
+    hoodie.account.on('signup signin signout', transactions.clear)
+    // show encrypted transactions as soon as decryption is ready
+    hoodie.on('encryptionReady', function () {
+      loadTransactions()
     })
-    this.memo = memo
 
     // when memo changes, update the UI
-    this.updateMemo = function (item) {
+    var updateMemo = function (item) {
       $('#' + basename + '-memo-change').addClass('hidden')
       $('#' + basename + '-memo-show-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
       $('#' + basename + '-memo-show-amount').autoNumeric('set', escapeHtml(item.amount))
@@ -717,22 +707,38 @@
       $('#' + basename + '-memo').autoNumeric('set', escapeHtml(item.amount))
       $('#' + basename + '-memo-show').removeClass('hidden')
     }
-    hoodie.store.on(this.basename + 'memo:add ' + this.basename + 'memo:update', function (item) {
+
+    // load the "memo to myself"
+    var loadMemo = function () {
+      hoodie.store.find(basename + 'memo', basename + 'memo').done(function (item) {
+        memo = Encryption.decryptIfSignedIn(item)
+        if (memo) {
+          updateMemo(memo)
+        }
+      })
+    }
+    loadMemo()
+
+    // update the memo if changed
+    hoodie.store.on(basename + 'memo:add ' + basename + 'memo:update', function (item) {
       var decrypted = Encryption.decryptIfSignedIn(item)
       if (decrypted) {
-        this.updateMemo(decrypted)
+        updateMemo(decrypted)
       }
+    })
+    hoodie.on('encryptionReady', function () {
+      loadMemo()
     })
 
     // handle click on change memo link
-    $('#' + this.basename + '-memo-changeit').on('click', function (event) {
+    $('#' + basename + '-memo-changeit').on('click', function (event) {
       event.preventDefault()
       $('#' + basename + '-memo-change').removeClass('hidden')
       $('#' + basename + '-memo-show').addClass('hidden')
     })
 
     // on submit
-    $('#' + this.basename + '-panel').on('submit', function (event) {
+    $('#' + basename + '-panel').on('submit', function (event) {
       event.preventDefault()
 
       // fetch form data
@@ -750,7 +756,7 @@
       var strAmount
 
       // save the "memo to myself"
-      if (!$('#' + this.basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
+      if (!$('#' + basename + '-memo-change').hasClass('hidden') && strMemo > 0) {
         hoodie.store.updateOrAdd(basename + 'memo', basename + 'memo', Encryption.encryptIfSignedIn({
           amount: strMemo,
           updated: moment().toDate()
@@ -758,8 +764,8 @@
         .fail(function (error) {
           showHoodieError(error.message)
         })
-        $('#' + this.basename + '-memo-change').addClass('hidden')
-        $('#' + this.basename + '-memo-show').removeClass('hidden')
+        $('#' + basename + '-memo-change').addClass('hidden')
+        $('#' + basename + '-memo-show').removeClass('hidden')
       }
 
       // create a new item
