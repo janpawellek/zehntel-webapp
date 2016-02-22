@@ -5,9 +5,11 @@
   var Encryption
   var Budget
   var Transactions
+  var dataToBeMoved = []
 
   // initialize Hoodie
   hoodie = new Hoodie()
+  hoodie.setMaxListeners(20)
 
   // helper function to escape HTML
   function escapeHtml (string) {
@@ -108,6 +110,10 @@
 
       isInitialized: function () {
         return !!initialized
+      },
+
+      isEncryptionReady: function () {
+        return saltStored && enckeyStored && encryptionkey
       },
 
       // Initializes the Encryption object with Salt
@@ -343,7 +349,7 @@
       // as soon as the user signes in.
       // Returns the (potentially unencrypted!) item.
       encryptIfSignedIn: function (item) {
-        if (hoodie.account.username || saltStored || enckeyStored) {
+        if (saltStored || enckeyStored) {
           return this.encrypt(item)
         } else {
           item.preSignIn = true
@@ -400,11 +406,11 @@
       },
 
       // Returns the decrypted item if the user is signed in.
-      // Returns unencrypted items as they are if the user is not signed in.
+      // Returns unencrypted items as they are.
       // Returns undefined if an encrypted item can not (yet) be encrypted.
       decryptIfSignedIn: function (item) {
         // Just return the item if it's not encrypted
-        if (hoodie.account.username === undefined && !item.encryptedProperties) {
+        if (!item.encryptedProperties) {
           return item
         } else if (!saltStored || !enckeyStored) {
           return undefined
@@ -589,7 +595,7 @@
     }
 
     this.add = function (transaction, doRepaint) {
-      if (hoodie.account.username === undefined) {
+      if (!Encryption.isEncryptionReady()) {
         $('#signupSuggestion').removeClass('hidden')
       }
       collection.push(transaction)
@@ -602,7 +608,6 @@
       var txindex = getTransactionItemIndexById(transaction.id)
       if (txindex === null) {
         // add to collection if this transaction does not exist yet
-        // (happens on {moveData: true} on login)
         collection.push(transaction)
       } else {
         // just update the transaction
@@ -860,110 +865,157 @@
         return
       }
 
-      if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
-        // sign up as a new user
-
-        if (!username || !password) {
-          $('#signupFailed').removeClass('hidden')
-          $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.')
-          return
-        }
-
-        if (password !== passwordRepeat) {
-          $('#signupFailed').removeClass('hidden')
-          $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
-          return
-        }
-
-        // { moveData: false } is not yet implemented in hoodie.account.signUp
-        // thus, delete everything by hand if moveData is false
-        if (!moveData) {
-          hoodie.account.destroy()
-          .done(function () {
-            signInOrUp(true)
+      // Remove all items that have been entered prior to sign in and are thus still unencrypted
+      hoodie.store.removeAll(function (item) {
+        return item.preSignIn
+      })
+      .done(function (preSignInItems) {
+        // Move data if the user decided to keep it
+        if (moveData) {
+          preSignInItems.forEach(function (preSignInItem) {
+            var toBeMovedItem = {}
+            for (var property in preSignInItem) {
+              if (preSignInItem.hasOwnProperty(property)) {
+                if (
+                  property === 'preSignIn' ||
+                  /^_/.test(property) ||
+                  property === 'createdAt' ||
+                  property === 'createdBy' ||
+                  property === 'id' ||
+                  property === 'updatedAt'
+                ) {
+                  continue
+                } else {
+                  toBeMovedItem[property] = preSignInItem[property]
+                }
+              }
+            }
+            dataToBeMoved.push(toBeMovedItem)
           })
-          .fail(function (error) {
-            showHoodieError(error.message)
+
+          // encrypt and add items as soon as encryption is ready
+          hoodie.one('encryptionReady', function () {
+            dataToBeMoved.forEach(function (item) {
+              var itemType = item.type
+              delete item.type
+              hoodie.store.add(itemType, Encryption.encrypt(item))
+              .fail(function (error) {
+                showHoodieError(error)
+              })
+            })
+            dataToBeMoved = []
           })
-          return
         }
-        // Compute HMAC to authorize (never send the password to Hoodie!)
-        hmac = Encryption.authWithPassword(password)
-        hoodie.account.signUp(username, hmac, {moveData: moveData})
-        .done(
-          function () {
-            // signup successful
-            // publish salt
-            Encryption.publishSalt()
-            .then(function () {
-              // enable encryption
+
+        // Now sign up or sign in
+        if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
+          // sign up as a new user
+
+          if (!username || !password) {
+            $('#signupFailed').removeClass('hidden')
+            $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.')
+            return
+          }
+
+          if (password !== passwordRepeat) {
+            $('#signupFailed').removeClass('hidden')
+            $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
+            return
+          }
+
+          // Sign out first if signed in
+          if (hoodie.account.username) {
+            hoodie.account.signOut({ignoreLocalChanges: true})
+            .done(function () {
+              signInOrUp(moveData)
+            })
+            .fail(function (error) {
+              showHoodieError(error)
+            })
+            return
+          }
+
+          // Compute HMAC to authorize (never send the password to Hoodie!)
+          hmac = Encryption.authWithPassword(password)
+          hoodie.account.signUp(username, hmac)
+          .done(
+            function () {
+              // signup successful
+              // publish salt
+              Encryption.publishSalt()
+              .then(function () {
+                // enable encryption
+                Encryption.enableEncryption()
+                .then(function () {
+                  setLoggedIn(true)
+                })
+              })
+              .fail(function (error) {
+                showHoodieError(error.message)
+                // emergency sign out since salt could not be saved
+                hoodie.account.signOut()
+                .done(
+                  function () {
+                    // logout successful
+                    setLoggedIn(false)
+                  }
+                ).fail(
+                  function (error) {
+                    // logout failed
+                    showHoodieError(error.message)
+                  }
+                )
+              })
+
+              // set e-mail
+              if (email) {
+                hoodie.store.add('userinfo', { id: 'useremail', email: email })
+                .fail(
+                  function (error) {
+                    showHoodieError(error.message)
+                  }
+                )
+              }
+            }
+          ).fail(
+            function (error) {
+              // signup failed
+              if (error.name === 'HoodieConflictError') {
+                $('#signupFailed').removeClass('hidden')
+                $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
+                return
+              }
+              $('#loginFailedDetail').html(error.message)
+              $('#loginFailed').removeClass('hidden')
+              setLoggedIn(false)
+            }
+          )
+        } else {
+          // sign in using existing credentials
+          hmac = Encryption.authWithPassword(password)
+          hoodie.account.signIn(username, hmac)
+          .done(
+            function () {
+              // login successful, enable encryption
               Encryption.enableEncryption()
               .then(function () {
                 setLoggedIn(true)
               })
-            })
-            .fail(function (error) {
-              showHoodieError(error.message)
-              // emergency sign out since salt could not be saved
-              hoodie.account.signOut()
-              .done(
-                function () {
-                  // logout successful
-                  setLoggedIn(false)
-                }
-              ).fail(
-                function (error) {
-                  // logout failed
-                  showHoodieError(error.message)
-                }
-              )
-            })
-
-            // set e-mail
-            if (email) {
-              hoodie.store.add('userinfo', { id: 'useremail', email: email })
-              .fail(
-                function (error) {
-                  showHoodieError(error.message)
-                }
-              )
             }
-          }
-        ).fail(
-          function (error) {
-            // signup failed
-            if (error.name === 'HoodieConflictError') {
-              $('#signupFailed').removeClass('hidden')
-              $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
-              return
+          )
+          .fail(
+            function (error) {
+              // login failed
+              $('#loginFailedDetail').html(error.message)
+              $('#loginFailed').removeClass('hidden')
+              setLoggedIn(false)
             }
-            $('#loginFailedDetail').html(error.message)
-            $('#loginFailed').removeClass('hidden')
-            setLoggedIn(false)
-          }
-        )
-      } else {
-        // sign in using existing credentials
-        hmac = Encryption.authWithPassword(password)
-        hoodie.account.signIn(username, hmac, {moveData: moveData})
-        .done(
-          function () {
-            // login successful, enable encryption
-            Encryption.enableEncryption()
-            .then(function () {
-              setLoggedIn(true)
-            })
-          }
-        )
-        .fail(
-          function (error) {
-            // login failed
-            $('#loginFailedDetail').html(error.message)
-            $('#loginFailed').removeClass('hidden')
-            setLoggedIn(false)
-          }
-        )
-      }
+          )
+        }
+      })
+      .fail(function (error) {
+        showHoodieError(error)
+      })
     }
 
     // hide previous errors
@@ -1431,7 +1483,7 @@
         $('#income-dist-div').addClass('hidden')
 
         // show suggestion to signup
-        if (hoodie.account.username === undefined) {
+        if (!Encryption.isEncryptionReady()) {
           $('#signupSuggestion').removeClass('hidden')
         }
       })
