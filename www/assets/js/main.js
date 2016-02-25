@@ -221,6 +221,83 @@
         return hmac
       },
 
+      // Changes the username or password or both.
+      // Requires the user to be signed in.
+      // Returns a promise.
+      changeUsernameOrPassword: function (passwordOld, usernameNew, passwordNew) {
+        if (!initialized) {
+          throw new Error('Need to initialize encryption prior to change username or password.')
+        }
+        if (!saltStored) {
+          throw new Error('Need to store salt prior to change username or password.')
+        }
+        if (!enckeyStored) {
+          throw new Error('Need to store encryption key prior to change username or password.')
+        }
+        if (!encryptionkey) {
+          throw new Error('Encryption key is empty. Cannot change username or password.')
+        }
+
+        // Backup current encryption state
+        var usernameSha1Backup = usernameSha1
+        var saltBackup = salt
+        var masterkeyBackup = masterkey
+        var encryptionkeyBackup = encryptionkey
+        var restoreEncryptionBackup = function () {
+          initialized = true
+          saltStored = true
+          enckeyStored = true
+          usernameSha1 = usernameSha1Backup
+          salt = saltBackup
+          masterkey = masterkeyBackup
+          encryptionkey = encryptionkeyBackup
+        }
+        var hmacOld = Encryption.authWithPassword(passwordOld)
+
+        // 1. Init new salt
+        return Encryption.init(usernameNew)
+        .then(function () {
+          // 2. Publish salt
+          Encryption.publishSalt()
+          .then(function () {
+            // 3. Generate new HMAC and master key
+            var hmacNew = Encryption.authWithPassword(passwordNew)
+            // 4. Change password
+            hoodie.account.changePassword(hmacOld, hmacNew)
+            .then(function () {
+              var reencryptEncryptionkey = function () {
+                // TODO Enable encryption with the encryptionkeyBackup (hoodie.store.update('encryption-meta', 'current'))
+              }
+              // 5. Change username (only if changed)
+              if (usernameNew !== hoodie.account.username) {
+                hoodie.account.changeUsername(hmacOld, usernameNew)
+                .then(function () {
+                  reencryptEncryptionkey()
+                })
+                .catch(function (error) {
+                  restoreEncryptionBackup()
+                  throw error
+                })
+              } else {
+                reencryptEncryptionkey()
+              }
+            })
+            .catch(function (error) {
+              restoreEncryptionBackup()
+              throw error
+            })
+          })
+          .catch(function (error) {
+            restoreEncryptionBackup()
+            throw error
+          })
+        })
+        .catch(function (error) {
+          restoreEncryptionBackup()
+          throw error
+        })
+      },
+
       // Prepares encryption by initializing the encryption key.
       // Returns a Promise.
       enableEncryption: function () {
