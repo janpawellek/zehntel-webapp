@@ -254,45 +254,92 @@
         }
         var hmacOld = Encryption.authWithPassword(passwordOld)
 
-        // 1. Init new salt
+        // Init new salt
         return Encryption.init(usernameNew)
         .then(function () {
-          // 2. Publish salt
+          // Publish salt
           Encryption.publishSalt()
           .then(function () {
-            // 3. Generate new HMAC and master key
-            var hmacNew = Encryption.authWithPassword(passwordNew)
-            // 4. Change password
-            hoodie.account.changePassword(hmacOld, hmacNew)
-            .then(function () {
-              var reencryptEncryptionkey = function () {
-                // TODO Enable encryption with the encryptionkeyBackup (hoodie.store.update('encryption-meta', 'current'))
-              }
-              // 5. Change username (only if changed)
-              if (usernameNew !== hoodie.account.username) {
-                hoodie.account.changeUsername(hmacOld, usernameNew)
-                .then(function () {
-                  reencryptEncryptionkey()
+            var changePassword = function () {
+              // Generate new HMAC and master key
+              var hmacNew = Encryption.authWithPassword(passwordNew)
+              // Change password
+              hoodie.account.changePassword(hmacOld, hmacNew)
+              .then(function () {
+                // Re-encrypt the previous encryption key
+                var prp = new Aes(sjcl.codec.hex.toBits(masterkey))
+                var iv = sjcl.random.randomWords(keySize / 32)
+                var adata = sjcl.random.randomWords(adataSize / 32)
+                var enckeyenc = sjcl.mode.gcm.encrypt(
+                  prp,
+                  sjcl.codec.hex.toBits(encryptionkeyBackup),
+                  iv,
+                  adata
+                )
+                // Store encryption key internally
+                encryptionkey = encryptionkeyBackup
+                console.log('Re-encrypted existing Encryption Key:' +
+                  ' enckey: ' + encryptionkey +
+                  ' iv: ' + sjcl.codec.hex.fromBits(iv) +
+                  ' adata: ' + sjcl.codec.hex.fromBits(adata) +
+                  ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
+                )
+                hoodie.store.update('encryption-meta', 'current', {
+                  iv: sjcl.codec.hex.fromBits(iv),
+                  adata: sjcl.codec.hex.fromBits(adata),
+                  enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
                 })
-                .catch(function (error) {
-                  restoreEncryptionBackup()
+                .done(function () {
+                  hoodie.remote.push()
+                  .then(function () {
+                    enckeyStored = true
+                    console.log('Re-encrypted enckey stored.')
+                  })
+                  .fail(function (error) {
+                    console.log('hoodie.remote.push error:')
+                    console.log(error)
+                    throw error
+                  })
+                })
+                .fail(function (error) {
+                  console.log('hoodie.store.update error:')
+                  console.log(error)
                   throw error
                 })
-              } else {
-                reencryptEncryptionkey()
-              }
-            })
-            .catch(function (error) {
-              restoreEncryptionBackup()
-              throw error
-            })
+              })
+              .catch(function (error) {
+                console.log('hoodie.account.changePassword error:')
+                console.log(error)
+                restoreEncryptionBackup()
+                throw error
+              })
+            }
+            // Change username (only if changed)
+            if (usernameNew !== hoodie.account.username) {
+              hoodie.account.changeUsername(hmacOld, usernameNew)
+              .then(function () {
+                changePassword()
+              })
+              .catch(function (error) {
+                console.log('hoodie.account.changeUsername error:')
+                console.log(error)
+                restoreEncryptionBackup()
+                throw error
+              })
+            } else {
+              changePassword()
+            }
           })
           .catch(function (error) {
+            console.log('Encryption.publishSalt error:')
+            console.log(error)
             restoreEncryptionBackup()
             throw error
           })
         })
         .catch(function (error) {
+          console.log('Encryption.init error:')
+          console.log(error)
           restoreEncryptionBackup()
           throw error
         })
@@ -1131,11 +1178,6 @@
     setLoggedIn(false)
   })
 
-  /* TODO Check if we need this - enableEncryption in that case
-  hoodie.account.on('signin signup', function () {
-    setLoggedIn(true)
-  })*/
-
   $('#loginModal').on('hidden.bs.modal', function () {
     // empty password fields on modal close
     $('#loginModal input[type=password]').val('')
@@ -1149,18 +1191,25 @@
     var passwordNew = $('#settingsNewPassword').val()
     var passwordNewRepeat = $('#settingsNewPasswordRepeat').val()
     var email = $('#settingsEmail').val()
-    var closeCounter = 3
+    var closeCounter = 2
 
     $('#settingsFailed').addClass('hidden')
 
-    // change username if requested
-    if (username !== hoodie.account.username) {
+    // change username and/or password if requested
+    if (username !== hoodie.account.username || (passwordNew || passwordNewRepeat)) {
       if (!passwordOld) {
         $('#settingsFailed').removeClass('hidden')
-        $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um deinen Namen zu ändern.')
+        $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um deinen Namen oder das Passwort zu ändern.')
         return
       }
-      hoodie.account.changeUsername(passwordOld, username)
+      if (passwordNew !== passwordNewRepeat) {
+        $('#settingsFailed').removeClass('hidden')
+        $('#settingsFailed').html('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
+        return
+      }
+      // TODO check if HoodieConflictError and HoodieUnauthorizedError work
+      // TODO What happens if the user is offline on change?
+      Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
       .done(function () {
         closeCounter -= 1
         if (!closeCounter) {
@@ -1181,42 +1230,6 @@
         $('#settingsFailed').html(error.message)
         $('#settingsFailed').removeClass('hidden')
       })
-    } else {
-      closeCounter -= 1
-    }
-
-    // change password if requested
-    if (passwordNew || passwordNewRepeat) {
-      if (!passwordOld) {
-        $('#settingsFailed').removeClass('hidden')
-        $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um dein Passwort zu ändern.')
-        return
-      }
-      if (passwordNew !== passwordNewRepeat) {
-        $('#settingsFailed').removeClass('hidden')
-        $('#settingsFailed').html('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
-        return
-      }
-      if (passwordOld !== passwordNew) {
-        hoodie.account.changePassword(passwordOld, passwordNew)
-        .done(function () {
-          closeCounter -= 1
-          if (!closeCounter) {
-            $('#settingsModal').modal('hide')
-          }
-        })
-        .fail(function (error) {
-          if (error.name === 'HoodieUnauthorizedError') {
-            $('#settingsFailed').removeClass('hidden')
-            $('#settingsFailed').html('Dein aktuelles Passwort ist nicht korrekt eingegeben.')
-            return
-          }
-          $('#settingsFailed').html(error.message)
-          $('#settingsFailed').removeClass('hidden')
-        })
-      } else {
-        closeCounter -= 1
-      }
     } else {
       closeCounter -= 1
     }
@@ -1579,13 +1592,6 @@
 
     // set initial state to logged off (since we need authentication to decrypt)
     setLoggedIn(false)
-
-    /* TODO check if we need this instead
-    if (hoodie.account.username === undefined) {
-      setLoggedIn(false)
-    } else {
-      setLoggedIn(true)
-    }*/
 
     $('.onHoodieReadyHide').addClass('hidden')
     $('.onHoodieReadyShow').removeClass('hidden')
