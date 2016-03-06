@@ -126,13 +126,13 @@
         usernameSha1 = sjcl.codec.hex.fromBits(sjcl.hash.sha1.hash(username))
         console.log('Encryption init. usernameSha1=' + usernameSha1)
         return hoodie.global.find('global-salts', usernameSha1)
-        .then(function (result) {
+        .then(function (result) { // REVIEW promises
           salt = result.salt
           initialized = true
           saltStored = true
           console.log('Fetched from global salts: Salt=' + salt)
         })
-        .catch(function (error) {
+        .catch(function (error) { // REVIEW promises
           if (error.name === 'HoodieNotFoundError') {
             salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
             initialized = true
@@ -164,10 +164,10 @@
           id: usernameSha1,
           salt: salt
         })
-        .then(function () {
+        .then(function () { // REVIEW promises
           saltStored = true
         })
-        .fail(function (error) {
+        .fail(function (error) { // REVIEW promises
           throw error
         })
       },
@@ -256,16 +256,16 @@
 
         // Init new salt
         return Encryption.init(usernameNew)
-        .then(function () {
+        .then(function () { // REVIEW promises
           // Publish salt
-          Encryption.publishSalt()
+          Encryption.publishSalt() // REVIEW promises
           .then(function () {
             var changePassword = function () {
               // Generate new HMAC and master key
               var hmacNew = Encryption.authWithPassword(passwordNew)
               // Change password
               hoodie.account.changePassword(hmacOld, hmacNew)
-              .then(function () {
+              .then(function () { // REVIEW promises
                 // Re-encrypt the previous encryption key
                 var prp = new Aes(sjcl.codec.hex.toBits(masterkey))
                 var iv = sjcl.random.randomWords(keySize / 32)
@@ -289,25 +289,25 @@
                   adata: sjcl.codec.hex.fromBits(adata),
                   enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
                 })
-                .done(function () {
+                .done(function () { // REVIEW promises
                   hoodie.remote.push()
-                  .then(function () {
+                  .then(function () { // REVIEW promises
                     enckeyStored = true
                     console.log('Re-encrypted enckey stored.')
                   })
-                  .fail(function (error) {
+                  .fail(function (error) { // REVIEW promises
                     console.log('hoodie.remote.push error:')
                     console.log(error)
                     throw error
                   })
                 })
-                .fail(function (error) {
+                .fail(function (error) { // REVIEW promises
                   console.log('hoodie.store.update error:')
                   console.log(error)
                   throw error
                 })
               })
-              .catch(function (error) {
+              .catch(function (error) { // REVIEW promises
                 console.log('hoodie.account.changePassword error:')
                 console.log(error)
                 restoreEncryptionBackup()
@@ -317,10 +317,10 @@
             // Change username (only if changed)
             if (usernameNew !== hoodie.account.username) {
               hoodie.account.changeUsername(hmacOld, usernameNew)
-              .then(function () {
+              .then(function () { // REVIEW promises
                 changePassword()
               })
-              .catch(function (error) {
+              .catch(function (error) { // REVIEW promises
                 console.log('hoodie.account.changeUsername error:')
                 console.log(error)
                 restoreEncryptionBackup()
@@ -330,14 +330,14 @@
               changePassword()
             }
           })
-          .catch(function (error) {
+          .catch(function (error) { // REVIEW promises
             console.log('Encryption.publishSalt error:')
             console.log(error)
             restoreEncryptionBackup()
             throw error
           })
         })
-        .catch(function (error) {
+        .catch(function (error) { // REVIEW promises
           console.log('Encryption.init error:')
           console.log(error)
           restoreEncryptionBackup()
@@ -366,7 +366,7 @@
 
         // Fetch encrypted Encryption Key from user store
         return hoodie.store.find('encryption-meta', 'current')
-        .then(function (result) {
+        .then(function (result) { // REVIEW promises
           console.log('Found current encryption-meta item:')
           console.log(result)
           // Unencrypt Encryption Key
@@ -381,7 +381,7 @@
           enckeyStored = true
           hoodie.trigger('encryptionReady')
         })
-        .catch(function (error) {
+        .catch(function (error) { // REVIEW promises
           if (error.name === 'HoodieNotFoundError') {
             // Init new Encryption Key
             prp = new Aes(sjcl.codec.hex.toBits(masterkey))
@@ -405,12 +405,12 @@
               adata: sjcl.codec.hex.fromBits(adata),
               enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
             })
-            .then(function () {
+            .then(function () { // REVIEW promises
               enckeyStored = true
               hoodie.trigger('encryptionReady')
               console.log('Stored enckey: ' + enckeyStored)
             })
-            .fail(function (error) {
+            .fail(function (error) { // REVIEW promises
               throw error
             })
           } else {
@@ -669,7 +669,7 @@
             subject: strSubject,
             amount: strAmount,
             updated: moment().toDate()
-          })).fail(function (error) {
+          })).fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         })
@@ -689,7 +689,7 @@
           'Behalten',
           function () {
             hoodie.store.remove(todeletetype, todeleteid)
-            .fail(function (error) {
+            .fail(function (error) { // REVIEW promises
               showHoodieError(error.message)
             })
           },
@@ -776,7 +776,7 @@
 
     // helper function to load all transactions from the store
     var loadTransactions = function () {
-      hoodie.store.findAll(basename + 'item').then(function (items) {
+      hoodie.store.findAll(basename + 'item').then(function (items) { // REVIEW promises
         items.forEach(function (transaction) {
           var decrypted = Encryption.decryptIfSignedIn(transaction)
           if (decrypted) {
@@ -786,7 +786,7 @@
         if (items.length) {
           transactions.repaint()
         }
-      }).fail(function (error) {
+      }).fail(function (error) { // REVIEW promises
         showHoodieError(error.message)
       })
     }
@@ -832,7 +832,7 @@
 
     // load the "memo to myself"
     var loadMemo = function () {
-      hoodie.store.find(basename + 'memo', basename + 'memo').done(function (item) {
+      hoodie.store.find(basename + 'memo', basename + 'memo').done(function (item) { // REVIEW promises
         memo = Encryption.decryptIfSignedIn(item)
         if (memo) {
           updateMemo(memo)
@@ -883,7 +883,7 @@
           amount: strMemo,
           updated: moment().toDate()
         }))
-        .fail(function (error) {
+        .fail(function (error) { // REVIEW promises
           showHoodieError(error.message)
         })
         $('#' + basename + '-memo-change').addClass('hidden')
@@ -921,7 +921,7 @@
           subject: strSubject,
           amount: strAmount
         }))
-        .fail(function (error) {
+        .fail(function (error) { // REVIEW promises
           showHoodieError(error.message)
         })
         inputDate.val(moment().format('DD.MM.YYYY'))
@@ -945,7 +945,7 @@
 
       // load settings
       $('#settingsName').val(hoodie.account.username)
-      hoodie.store.find('userinfo', 'useremail').done(function (item) {
+      hoodie.store.find('userinfo', 'useremail').done(function (item) { // REVIEW promises
         $('#settingsEmail').val(item.email)
       })
     } else {
@@ -980,10 +980,10 @@
       // Initialize Encryption (salt) if not done yet
       if (!Encryption.isInitialized()) {
         Encryption.init(username)
-        .then(function () {
+        .then(function () { // REVIEW promises
           signInOrUp(moveData)
         })
-        .fail(function (error) {
+        .fail(function (error) { // REVIEW promises
           showHoodieError(error.message)
         })
         return
@@ -993,7 +993,7 @@
       hoodie.store.removeAll(function (item) {
         return item.preSignIn
       })
-      .done(function (preSignInItems) {
+      .done(function (preSignInItems) { // REVIEW promises
         // Move data if the user decided to keep it
         if (moveData) {
           preSignInItems.forEach(function (preSignInItem) {
@@ -1023,7 +1023,7 @@
               var itemType = item.type
               delete item.type
               hoodie.store.add(itemType, Encryption.encrypt(item))
-              .fail(function (error) {
+              .fail(function (error) { // REVIEW promises
                 showHoodieError(error)
               })
             })
@@ -1050,10 +1050,10 @@
           // Sign out first if signed in
           if (hoodie.account.username) {
             hoodie.account.signOut({ignoreLocalChanges: true})
-            .done(function () {
+            .done(function () { // REVIEW promises
               signInOrUp(moveData)
             })
-            .fail(function (error) {
+            .fail(function (error) { // REVIEW promises
               showHoodieError(error)
             })
             return
@@ -1062,28 +1062,28 @@
           // Compute HMAC to authorize (never send the password to Hoodie!)
           hmac = Encryption.authWithPassword(password)
           hoodie.account.signUp(username, hmac)
-          .done(
+          .done( // REVIEW promises
             function () {
               // signup successful
               // publish salt
               Encryption.publishSalt()
-              .then(function () {
+              .then(function () { // REVIEW promises
                 // enable encryption
                 Encryption.enableEncryption()
-                .then(function () {
+                .then(function () { // REVIEW promises
                   setLoggedIn(true)
                 })
               })
-              .fail(function (error) {
+              .fail(function (error) { // REVIEW promises
                 showHoodieError(error.message)
                 // emergency sign out since salt could not be saved
                 hoodie.account.signOut()
-                .done(
+                .done( // REVIEW promises
                   function () {
                     // logout successful
                     setLoggedIn(false)
                   }
-                ).fail(
+                ).fail( // REVIEW promises
                   function (error) {
                     // logout failed
                     showHoodieError(error.message)
@@ -1094,14 +1094,14 @@
               // set e-mail
               if (email) {
                 hoodie.store.add('userinfo', { id: 'useremail', email: email })
-                .fail(
+                .fail( // REVIEW promises
                   function (error) {
                     showHoodieError(error.message)
                   }
                 )
               }
             }
-          ).fail(
+          ).fail( // REVIEW promises
             function (error) {
               // signup failed
               if (error.name === 'HoodieConflictError') {
@@ -1118,16 +1118,16 @@
           // sign in using existing credentials
           hmac = Encryption.authWithPassword(password)
           hoodie.account.signIn(username, hmac)
-          .done(
+          .done( // REVIEW promises
             function () {
               // login successful, enable encryption
               Encryption.enableEncryption()
-              .then(function () {
+              .then(function () { // REVIEW promises
                 setLoggedIn(true)
               })
             }
           )
-          .fail(
+          .fail( // REVIEW promises
             function (error) {
               // login failed
               $('#loginFailedDetail').html(error.message)
@@ -1137,7 +1137,7 @@
           )
         }
       })
-      .fail(function (error) {
+      .fail(function (error) { // REVIEW promises
         showHoodieError(error)
       })
     }
@@ -1161,12 +1161,12 @@
 
   $('#logoutButton').click(function () {
     hoodie.account.signOut()
-    .done(
+    .done( // REVIEW promises
       function () {
         // logout successful
         setLoggedIn(false)
       }
-    ).fail(
+    ).fail( // REVIEW promises
       function (error) {
         // logout failed
         showHoodieError(error.message)
@@ -1210,13 +1210,13 @@
       // TODO check if HoodieConflictError and HoodieUnauthorizedError work
       // TODO What happens if the user is offline on change?
       Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
-      .done(function () {
+      .done(function () { // REVIEW promises
         closeCounter -= 1
         if (!closeCounter) {
           $('#settingsModal').modal('hide')
         }
       })
-      .fail(function (error) {
+      .fail(function (error) { // REVIEW promises
         if (error.name === 'HoodieConflictError') {
           $('#settingsFailed').removeClass('hidden')
           $('#settingsFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
@@ -1236,13 +1236,13 @@
 
     // change e-mail address
     hoodie.store.updateOrAdd('userinfo', 'useremail', {'email': email})
-    .done(function () {
+    .done(function () { // REVIEW promises
       closeCounter -= 1
       if (!closeCounter) {
         $('#settingsModal').modal('hide')
       }
     })
-    .fail(function (error) {
+    .fail(function (error) { // REVIEW promises
       $('#settingsFailed').html(error.message)
       $('#settingsFailed').removeClass('hidden')
     })
@@ -1288,10 +1288,10 @@
     connectionCheck = function () {
       window.setTimeout(function () {
         hoodie.checkConnection()
-        .done(function () {
+        .done(function () { // REVIEW promises
           $('.connectionOffline').addClass('hidden')
         })
-        .fail(function () {
+        .fail(function () { // REVIEW promises
           $('.connectionOffline').removeClass('hidden')
         })
         connectionCheck()
@@ -1355,7 +1355,7 @@
         var decrypted = Encryption.decryptIfSignedIn(object)
         return decrypted && decrypted.amount === $('#income-amount').autoNumeric('get')
       })
-      .done(function (sameAmountItems) {
+      .done(function (sameAmountItems) { // REVIEW promises
         if (sameAmountItems.length > 0) {
           // fetch the ID of the latest item with this amount
           var lastid = sameAmountItems.sort(function (a, b) {
@@ -1370,7 +1370,7 @@
             var decrypted = Encryption.decryptIfSignedIn(object)
             return decrypted && decrypted.income === lastid
           })
-          .done(function (items) {
+          .done(function (items) { // REVIEW promises
             if (items.length > 0) {
               $('#income-spend').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
@@ -1385,7 +1385,7 @@
             var decrypted = Encryption.decryptIfSignedIn(object)
             return decrypted && decrypted.income === lastid
           })
-          .done(function (items) {
+          .done(function (items) { // REVIEW promises
             if (items.length > 0) {
               $('#income-contracts').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
@@ -1400,7 +1400,7 @@
             var decrypted = Encryption.decryptIfSignedIn(object)
             return decrypted && decrypted.income === lastid
           })
-          .done(function (items) {
+          .done(function (items) { // REVIEW promises
             if (items.length > 0) {
               $('#income-save').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
@@ -1415,7 +1415,7 @@
             var decrypted = Encryption.decryptIfSignedIn(object)
             return decrypted && decrypted.income === lastid
           })
-          .done(function (items) {
+          .done(function (items) { // REVIEW promises
             if (items.length > 0) {
               $('#income-invest').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
@@ -1430,7 +1430,7 @@
             var decrypted = Encryption.decryptIfSignedIn(object)
             return decrypted && decrypted.income === lastid
           })
-          .done(function (items) {
+          .done(function (items) { // REVIEW promises
             if (items.length > 0) {
               $('#income-give').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
               updateIncomeSum()
@@ -1508,7 +1508,7 @@
         subject: strSubject,
         amount: strAmount
       }))
-      .done(function (income) {
+      .done(function (income) { // REVIEW promises
         incomeId = income.id
 
         if (strSpend > 0) {
@@ -1518,7 +1518,7 @@
             amount: strSpend,
             income: incomeId
           }))
-          .fail(function (error) {
+          .fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         }
@@ -1529,7 +1529,7 @@
             amount: strContracts,
             income: incomeId
           }))
-          .fail(function (error) {
+          .fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         }
@@ -1540,7 +1540,7 @@
             amount: strSave,
             income: incomeId
           }))
-          .fail(function (error) {
+          .fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         }
@@ -1551,7 +1551,7 @@
             amount: strInvest,
             income: incomeId
           }))
-          .fail(function (error) {
+          .fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         }
@@ -1562,7 +1562,7 @@
             amount: strGive,
             income: incomeId
           }))
-          .fail(function (error) {
+          .fail(function (error) { // REVIEW promises
             showHoodieError(error.message)
           })
         }
@@ -1577,7 +1577,7 @@
           $('#signupSuggestion').removeClass('hidden')
         }
       })
-      .fail(function (error) {
+      .fail(function (error) { // REVIEW promises
         showHoodieError(error.message)
       })
     })
