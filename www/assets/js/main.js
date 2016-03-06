@@ -126,13 +126,13 @@
         usernameSha1 = sjcl.codec.hex.fromBits(sjcl.hash.sha1.hash(username))
         console.log('Encryption init. usernameSha1=' + usernameSha1)
         return hoodie.global.find('global-salts', usernameSha1)
-        .then(function (result) { // REVIEW promises
+        .then(function (result) {
           salt = result.salt
           initialized = true
           saltStored = true
           console.log('Fetched from global salts: Salt=' + salt)
         })
-        .catch(function (error) { // REVIEW promises
+        .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
             salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
             initialized = true
@@ -149,10 +149,10 @@
       // Returns a Promise.
       publishSalt: function () {
         if (!initialized || !salt) {
-          throw new Error('Need to initialize the Encryption object first.')
+          return Promise.reject('Need to initialize the Encryption object first.')
         }
         if (hoodie.account.username === undefined) {
-          throw new Error('Need to sign in to Hoodie first.')
+          return Promise.reject('Need to sign in to Hoodie first.')
         }
 
         if (saltStored) {
@@ -164,11 +164,8 @@
           id: usernameSha1,
           salt: salt
         })
-        .then(function () { // REVIEW promises
+        .then(function () {
           saltStored = true
-        })
-        .fail(function (error) { // REVIEW promises
-          throw error
         })
       },
 
@@ -226,16 +223,16 @@
       // Returns a promise.
       changeUsernameOrPassword: function (passwordOld, usernameNew, passwordNew) {
         if (!initialized) {
-          throw new Error('Need to initialize encryption prior to change username or password.')
+          return Promise.reject('Need to initialize encryption prior to change username or password.')
         }
         if (!saltStored) {
-          throw new Error('Need to store salt prior to change username or password.')
+          return Promise.reject('Need to store salt prior to change username or password.')
         }
         if (!enckeyStored) {
-          throw new Error('Need to store encryption key prior to change username or password.')
+          return Promise.reject('Need to store encryption key prior to change username or password.')
         }
         if (!encryptionkey) {
-          throw new Error('Encryption key is empty. Cannot change username or password.')
+          return Promise.reject('Encryption key is empty. Cannot change username or password.')
         }
 
         // Backup current encryption state
@@ -252,96 +249,87 @@
           masterkey = masterkeyBackup
           encryptionkey = encryptionkeyBackup
         }
-        var hmacOld = Encryption.authWithPassword(passwordOld)
 
-        // Init new salt
+        // Determine old HMAC
+        var hmacOld
+        try {
+          hmacOld = Encryption.authWithPassword(passwordOld)
+        } catch (e) {
+          return Promise.reject(e.message)
+        }
+
+        // 1. Init new salt
+        console.log('calling Encryption.init')
         return Encryption.init(usernameNew)
-        .then(function () { // REVIEW promises
-          // Publish salt
-          Encryption.publishSalt() // REVIEW promises
-          .then(function () {
-            var changePassword = function () {
-              // Generate new HMAC and master key
-              var hmacNew = Encryption.authWithPassword(passwordNew)
-              // Change password
-              hoodie.account.changePassword(hmacOld, hmacNew)
-              .then(function () { // REVIEW promises
-                // Re-encrypt the previous encryption key
-                var prp = new Aes(sjcl.codec.hex.toBits(masterkey))
-                var iv = sjcl.random.randomWords(keySize / 32)
-                var adata = sjcl.random.randomWords(adataSize / 32)
-                var enckeyenc = sjcl.mode.gcm.encrypt(
-                  prp,
-                  sjcl.codec.hex.toBits(encryptionkeyBackup),
-                  iv,
-                  adata
-                )
-                // Store encryption key internally
-                encryptionkey = encryptionkeyBackup
-                console.log('Re-encrypted existing Encryption Key:' +
-                  ' enckey: ' + encryptionkey +
-                  ' iv: ' + sjcl.codec.hex.fromBits(iv) +
-                  ' adata: ' + sjcl.codec.hex.fromBits(adata) +
-                  ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
-                )
-                hoodie.store.update('encryption-meta', 'current', {
-                  iv: sjcl.codec.hex.fromBits(iv),
-                  adata: sjcl.codec.hex.fromBits(adata),
-                  enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
-                })
-                .done(function () { // REVIEW promises
-                  hoodie.remote.push()
-                  .then(function () { // REVIEW promises
-                    enckeyStored = true
-                    console.log('Re-encrypted enckey stored.')
-                  })
-                  .fail(function (error) { // REVIEW promises
-                    console.log('hoodie.remote.push error:')
-                    console.log(error)
-                    throw error
-                  })
-                })
-                .fail(function (error) { // REVIEW promises
-                  console.log('hoodie.store.update error:')
-                  console.log(error)
-                  throw error
-                })
-              })
-              .catch(function (error) { // REVIEW promises
-                console.log('hoodie.account.changePassword error:')
-                console.log(error)
-                restoreEncryptionBackup()
-                throw error
-              })
-            }
-            // Change username (only if changed)
-            if (usernameNew !== hoodie.account.username) {
-              hoodie.account.changeUsername(hmacOld, usernameNew)
-              .then(function () { // REVIEW promises
-                changePassword()
-              })
-              .catch(function (error) { // REVIEW promises
-                console.log('hoodie.account.changeUsername error:')
-                console.log(error)
-                restoreEncryptionBackup()
-                throw error
-              })
-            } else {
-              changePassword()
-            }
-          })
-          .catch(function (error) { // REVIEW promises
-            console.log('Encryption.publishSalt error:')
-            console.log(error)
-            restoreEncryptionBackup()
-            throw error
+        // 2. Publish salt
+        .then(function () {
+          console.log('calling Encryption.publishSalt')
+          return Encryption.publishSalt()
+        })
+        // 3. Change username (or do nothing if it doesn't change)
+        .then(function () {
+          if (usernameNew !== hoodie.account.username) {
+            console.log('calling changeUsername')
+            return hoodie.account.changeUsername(hmacOld, usernameNew)
+          }
+        })
+        // until now, everything can be restored on failure
+        .catch(function (error) {
+          restoreEncryptionBackup()
+          console.log('Error changing username or password. Restored.')
+          console.log(error)
+          throw error
+        })
+        // 4. Change password (always needed since salt changed)
+        .then(function () {
+          // 4a. Generate new HMAC and master key
+          var hmacNew
+          try {
+            hmacNew = Encryption.authWithPassword(passwordNew)
+          } catch (e) {
+            return Promise.reject(e.message)
+          }
+
+          // 4b. Change password at Hoodie
+          console.log('calling changePassword. hmacNew=' + hmacNew)
+          return hoodie.account.changePassword(hmacOld, hmacNew)
+        })
+        // 5. Encrypt the encryption key with the new master key
+        .then(function () {
+          var prp = new Aes(sjcl.codec.hex.toBits(masterkey)) // TODO check if this then really refers to the NEW master key
+          var iv = sjcl.random.randomWords(keySize / 32)
+          var adata = sjcl.random.randomWords(adataSize / 32)
+          var enckeyenc = sjcl.mode.gcm.encrypt(
+            prp,
+            sjcl.codec.hex.toBits(encryptionkeyBackup),
+            iv,
+            adata
+          )
+          // Store encryption key internally
+          encryptionkey = encryptionkeyBackup
+          console.log('Re-encrypted existing Encryption Key:' +
+            ' enckey: ' + encryptionkey +
+            ' iv: ' + sjcl.codec.hex.fromBits(iv) +
+            ' adata: ' + sjcl.codec.hex.fromBits(adata) +
+            ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
+          )
+
+          // Save new encrypted encryption key
+          return hoodie.store.update('encryption-meta', 'current', {
+            iv: sjcl.codec.hex.fromBits(iv),
+            adata: sjcl.codec.hex.fromBits(adata),
+            enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
           })
         })
-        .catch(function (error) { // REVIEW promises
-          console.log('Encryption.init error:')
-          console.log(error)
-          restoreEncryptionBackup()
-          throw error
+        // 6. Force push changes
+        .then(function () {
+          console.log('calling remote.push')
+          return hoodie.remote.push()
+        })
+        // 7. Now everything is completed
+        .then(function () {
+          console.log('enckey stored')
+          enckeyStored = true
         })
       },
 
@@ -355,18 +343,18 @@
         var enckeyenc // encryption key encrypted
 
         if (!initialized) {
-          throw new Error('Need to initialize the Encryption object first.')
+          return Promise.reject('Need to initialize the Encryption object first.')
         }
         if (!masterkey) {
-          throw new Error('Need to authWithPassword or authWithMasterKey first.')
+          return Promise.reject('Need to authWithPassword or authWithMasterKey first.')
         }
         if (hoodie.account.username === undefined) {
-          throw new Error('Need to sign in to Hoodie first.')
+          return Promise.reject('Need to sign in to Hoodie first.')
         }
 
         // Fetch encrypted Encryption Key from user store
         return hoodie.store.find('encryption-meta', 'current')
-        .then(function (result) { // REVIEW promises
+        .then(function (result) {
           console.log('Found current encryption-meta item:')
           console.log(result)
           // Unencrypt Encryption Key
@@ -378,10 +366,8 @@
             sjcl.codec.hex.toBits(result.adata)
           ))
           console.log('Decrypted encryption key: ' + encryptionkey)
-          enckeyStored = true
-          hoodie.trigger('encryptionReady')
         })
-        .catch(function (error) { // REVIEW promises
+        .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
             // Init new Encryption Key
             prp = new Aes(sjcl.codec.hex.toBits(masterkey))
@@ -399,23 +385,20 @@
             )
 
             // Persist the encypted encryption key into user store
-            hoodie.store.add('encryption-meta', {
+            return hoodie.store.add('encryption-meta', {
               id: 'current',
               iv: sjcl.codec.hex.fromBits(iv),
               adata: sjcl.codec.hex.fromBits(adata),
               enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
             })
-            .then(function () { // REVIEW promises
-              enckeyStored = true
-              hoodie.trigger('encryptionReady')
-              console.log('Stored enckey: ' + enckeyStored)
-            })
-            .fail(function (error) { // REVIEW promises
-              throw error
-            })
           } else {
             throw error
           }
+        })
+        .then(function () {
+          console.log('enckey stored, triggering encryptionReady')
+          enckeyStored = true
+          hoodie.trigger('encryptionReady')
         })
       },
 
@@ -669,7 +652,8 @@
             subject: strSubject,
             amount: strAmount,
             updated: moment().toDate()
-          })).fail(function (error) { // REVIEW promises
+          }))
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         })
@@ -689,7 +673,7 @@
           'Behalten',
           function () {
             hoodie.store.remove(todeletetype, todeleteid)
-            .fail(function (error) { // REVIEW promises
+            .catch(function (error) {
               showHoodieError(error.message)
             })
           },
@@ -776,7 +760,8 @@
 
     // helper function to load all transactions from the store
     var loadTransactions = function () {
-      hoodie.store.findAll(basename + 'item').then(function (items) { // REVIEW promises
+      hoodie.store.findAll(basename + 'item')
+      .then(function (items) {
         items.forEach(function (transaction) {
           var decrypted = Encryption.decryptIfSignedIn(transaction)
           if (decrypted) {
@@ -786,7 +771,8 @@
         if (items.length) {
           transactions.repaint()
         }
-      }).fail(function (error) { // REVIEW promises
+      })
+      .catch(function (error) {
         showHoodieError(error.message)
       })
     }
@@ -832,7 +818,8 @@
 
     // load the "memo to myself"
     var loadMemo = function () {
-      hoodie.store.find(basename + 'memo', basename + 'memo').done(function (item) { // REVIEW promises
+      hoodie.store.find(basename + 'memo', basename + 'memo')
+      .then(function (item) {
         memo = Encryption.decryptIfSignedIn(item)
         if (memo) {
           updateMemo(memo)
@@ -883,7 +870,7 @@
           amount: strMemo,
           updated: moment().toDate()
         }))
-        .fail(function (error) { // REVIEW promises
+        .catch(function (error) {
           showHoodieError(error.message)
         })
         $('#' + basename + '-memo-change').addClass('hidden')
@@ -921,7 +908,7 @@
           subject: strSubject,
           amount: strAmount
         }))
-        .fail(function (error) { // REVIEW promises
+        .catch(function (error) {
           showHoodieError(error.message)
         })
         inputDate.val(moment().format('DD.MM.YYYY'))
@@ -945,7 +932,8 @@
 
       // load settings
       $('#settingsName').val(hoodie.account.username)
-      hoodie.store.find('userinfo', 'useremail').done(function (item) { // REVIEW promises
+      hoodie.store.find('userinfo', 'useremail')
+      .then(function (item) {
         $('#settingsEmail').val(item.email)
       })
     } else {
@@ -974,204 +962,145 @@
     var password = $('#loginPassword').val() // should never be sent
     var passwordRepeat = $('#loginPasswordRepeat').val() // should never be sent
     var email = $('#loginEmail').val()
-    var signInOrUp = function (moveData) {
-      var hmac
-
-      // Initialize Encryption (salt) if not done yet
-      if (!Encryption.isInitialized()) {
-        Encryption.init(username)
-        .then(function () { // REVIEW promises
-          signInOrUp(moveData)
-        })
-        .fail(function (error) { // REVIEW promises
-          showHoodieError(error.message)
-        })
-        return
-      }
-
-      // Remove all items that have been entered prior to sign in and are thus still unencrypted
-      hoodie.store.removeAll(function (item) {
-        return item.preSignIn
-      })
-      .done(function (preSignInItems) { // REVIEW promises
-        // Move data if the user decided to keep it
-        if (moveData) {
-          preSignInItems.forEach(function (preSignInItem) {
-            var toBeMovedItem = {}
-            for (var property in preSignInItem) {
-              if (preSignInItem.hasOwnProperty(property)) {
-                if (
-                  property === 'preSignIn' ||
-                  /^_/.test(property) ||
-                  property === 'createdAt' ||
-                  property === 'createdBy' ||
-                  property === 'id' ||
-                  property === 'updatedAt'
-                ) {
-                  continue
-                } else {
-                  toBeMovedItem[property] = preSignInItem[property]
-                }
-              }
-            }
-            dataToBeMoved.push(toBeMovedItem)
-          })
-
-          // encrypt and add items as soon as encryption is ready
-          hoodie.one('encryptionReady', function () {
-            dataToBeMoved.forEach(function (item) {
-              var itemType = item.type
-              delete item.type
-              hoodie.store.add(itemType, Encryption.encrypt(item))
-              .fail(function (error) { // REVIEW promises
-                showHoodieError(error)
-              })
-            })
-            dataToBeMoved = []
-          })
-        }
-
-        // Now sign up or sign in
-        if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
-          // sign up as a new user
-
-          if (!username || !password) {
-            $('#signupFailed').removeClass('hidden')
-            $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.')
-            return
-          }
-
-          if (password !== passwordRepeat) {
-            $('#signupFailed').removeClass('hidden')
-            $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
-            return
-          }
-
-          // Sign out first if signed in
-          if (hoodie.account.username) {
-            hoodie.account.signOut({ignoreLocalChanges: true})
-            .done(function () { // REVIEW promises
-              signInOrUp(moveData)
-            })
-            .fail(function (error) { // REVIEW promises
-              showHoodieError(error)
-            })
-            return
-          }
-
-          // Compute HMAC to authorize (never send the password to Hoodie!)
-          hmac = Encryption.authWithPassword(password)
-          hoodie.account.signUp(username, hmac)
-          .done( // REVIEW promises
-            function () {
-              // signup successful
-              // publish salt
-              Encryption.publishSalt()
-              .then(function () { // REVIEW promises
-                // enable encryption
-                Encryption.enableEncryption()
-                .then(function () { // REVIEW promises
-                  setLoggedIn(true)
-                })
-              })
-              .fail(function (error) { // REVIEW promises
-                showHoodieError(error.message)
-                // emergency sign out since salt could not be saved
-                hoodie.account.signOut()
-                .done( // REVIEW promises
-                  function () {
-                    // logout successful
-                    setLoggedIn(false)
-                  }
-                ).fail( // REVIEW promises
-                  function (error) {
-                    // logout failed
-                    showHoodieError(error.message)
-                  }
-                )
-              })
-
-              // set e-mail
-              if (email) {
-                hoodie.store.add('userinfo', { id: 'useremail', email: email })
-                .fail( // REVIEW promises
-                  function (error) {
-                    showHoodieError(error.message)
-                  }
-                )
-              }
-            }
-          ).fail( // REVIEW promises
-            function (error) {
-              // signup failed
-              if (error.name === 'HoodieConflictError') {
-                $('#signupFailed').removeClass('hidden')
-                $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
-                return
-              }
-              $('#loginFailedDetail').html(error.message)
-              $('#loginFailed').removeClass('hidden')
-              setLoggedIn(false)
-            }
-          )
-        } else {
-          // sign in using existing credentials
-          hmac = Encryption.authWithPassword(password)
-          hoodie.account.signIn(username, hmac)
-          .done( // REVIEW promises
-            function () {
-              // login successful, enable encryption
-              Encryption.enableEncryption()
-              .then(function () { // REVIEW promises
-                setLoggedIn(true)
-              })
-            }
-          )
-          .fail( // REVIEW promises
-            function (error) {
-              // login failed
-              $('#loginFailedDetail').html(error.message)
-              $('#loginFailed').removeClass('hidden')
-              setLoggedIn(false)
-            }
-          )
-        }
-      })
-      .fail(function (error) { // REVIEW promises
-        showHoodieError(error)
-      })
-    }
+    var signup = $('input[type=radio][name=loginSignupOption]:checked').val() === 'signup' // false: sign-in
 
     // hide previous errors
     $('#signupFailed, #loginFailed').addClass('hidden')
 
-    // ask whether anonymously entered data should be kept
-    if (!$('#signupSuggestion').hasClass('hidden')) {
-      dialogModal('Daten behalten?',
-        'Du hast gerade eben vor deiner Anmeldung Daten in Zehntel.org eingetragen. Möchtest du diese Einträge in deinen Account übernehmen?',
-        'Daten übernehmen',
-        'Daten verwerfen',
-        function () { signInOrUp(true) },
-        function () { signInOrUp(false) },
-        true)
-    } else {
-      signInOrUp(false)
+    // check for wrong or missing data
+    if (signup) {
+      if (!username || !password) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.')
+        return
+      }
+      if (password !== passwordRepeat) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
+        return
+      }
     }
+
+    // 1. Initialize Encryption
+    Encryption.init(username)
+    // 2. Remove all items that have been entered prior to sign in and are thus still unencrypted
+    //    (they can be saved in the next step)
+    .then(function () {
+      return hoodie.store.removeAll(function (item) {
+        return item.preSignIn
+      })
+    })
+    // 3. Queue removed items for encryption if the user wants to keep them
+    .then(function (preSignInItems) {
+      return new Promise(function (resolve, reject) {
+        if (preSignInItems) {
+          dialogModal('Daten behalten?',
+            'Du hast gerade eben vor deiner Anmeldung Daten in Zehntel.org eingetragen. Möchtest du diese Einträge in deinen Account übernehmen?',
+            'Daten übernehmen',
+            'Daten verwerfen',
+            function () {
+              preSignInItems.forEach(function (preSignInItem) {
+                var toBeMovedItem = {}
+                for (var property in preSignInItem) {
+                  if (preSignInItem.hasOwnProperty(property)) {
+                    if (
+                      property === 'preSignIn' ||
+                      /^_/.test(property) ||
+                      property === 'createdAt' ||
+                      property === 'createdBy' ||
+                      property === 'id' ||
+                      property === 'updatedAt'
+                    ) {
+                      continue
+                    } else {
+                      toBeMovedItem[property] = preSignInItem[property]
+                    }
+                  }
+                }
+                dataToBeMoved.push(toBeMovedItem)
+              })
+
+              // encrypt and add items as soon as encryption is ready
+              hoodie.one('encryptionReady', function () {
+                dataToBeMoved.forEach(function (item) {
+                  var itemType = item.type
+                  delete item.type
+                  hoodie.store.add(itemType, Encryption.encrypt(item))
+                  .catch(function (error) {
+                    showHoodieError(error)
+                  })
+                })
+                dataToBeMoved = []
+              })
+              resolve()
+            },
+            function () { resolve() },
+            true)
+        } else {
+          resolve()
+        }
+      })
+    })
+    // 4. Sign out first if signed in
+    .then(function () {
+      if (hoodie.account.username) {
+        return hoodie.account.signOut({ignoreLocalChanges: true})
+      }
+    })
+    // 5. Now sign in or up
+    .then(function () {
+      // Compute HMAC to authorize (never send the password to Hoodie!)
+      var hmac = Encryption.authWithPassword(password)
+      if (signup) {
+        return hoodie.account.signUp(username, hmac)
+      } else {
+        return hoodie.account.signIn(username, hmac)
+      }
+    })
+    // 6. Publish salt (if not already published)
+    .then(function () {
+      return Encryption.publishSalt()
+    })
+    // 7. Enable encryption
+    .then(function () {
+      return Encryption.enableEncryption()
+    })
+    // 8. Everything done, set logged in state
+    .then(function () {
+      setLoggedIn(true)
+    })
+    // 9. Set user email info if entered
+    .then(function () {
+      if (signup && email) {
+        return hoodie.store.add('userinfo', { id: 'useremail', email: email })
+      }
+    })
+    // X. Catch error cases
+    .catch(function (error) {
+      // username is already registered for sign up
+      if (error.name === 'HoodieConflictError') {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
+      }
+      $('#loginFailedDetail').html(error.message)
+      $('#loginFailed').removeClass('hidden')
+      if (hoodie.account.username) {
+        setLoggedIn(false)
+        return hoodie.account.signOut({ignoreLocalChanges: true})
+      }
+    })
   })
 
   $('#logoutButton').click(function () {
     hoodie.account.signOut()
-    .done( // REVIEW promises
-      function () {
-        // logout successful
-        setLoggedIn(false)
-      }
-    ).fail( // REVIEW promises
-      function (error) {
-        // logout failed
-        showHoodieError(error.message)
-      }
-    )
+    .then(function () {
+      // logout successful
+      setLoggedIn(false)
+    })
+    .catch(function (error) {
+      // logout failed
+      showHoodieError(error.message)
+    })
   })
 
   hoodie.account.on('error:unauthenticated signout', function () {
@@ -1191,71 +1120,58 @@
     var passwordNew = $('#settingsNewPassword').val()
     var passwordNewRepeat = $('#settingsNewPasswordRepeat').val()
     var email = $('#settingsEmail').val()
-    var closeCounter = 2
 
+    // hide previous errors
     $('#settingsFailed').addClass('hidden')
 
-    // change username and/or password if requested
-    if (username !== hoodie.account.username || (passwordNew || passwordNewRepeat)) {
-      if (!passwordOld) {
-        $('#settingsFailed').removeClass('hidden')
-        $('#settingsFailed').html('Bitte gib dein aktuelles Passwort ein, um deinen Namen oder das Passwort zu ändern.')
-        return
-      }
-      if (passwordNew !== passwordNewRepeat) {
-        $('#settingsFailed').removeClass('hidden')
-        $('#settingsFailed').html('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
-        return
-      }
-      // TODO check if HoodieConflictError and HoodieUnauthorizedError work
-      // TODO What happens if the user is offline on change?
-      Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
-      .done(function () { // REVIEW promises
-        closeCounter -= 1
-        if (!closeCounter) {
-          $('#settingsModal').modal('hide')
+    // Start the settings update chain
+    Promise.resolve()
+    // 1. Change email address
+    .then(function () {
+      return hoodie.store.updateOrAdd('userinfo', 'useremail', {'email': email})
+    })
+    // 2. Change username and/or password (if requested)
+    .then(function () {
+      if (username !== hoodie.account.username || (passwordNew || passwordNewRepeat)) {
+        if (!passwordOld) {
+          throw new Error('Bitte gib dein aktuelles Passwort ein, um deinen Namen oder das Passwort zu ändern.')
         }
-      })
-      .fail(function (error) { // REVIEW promises
-        if (error.name === 'HoodieConflictError') {
-          $('#settingsFailed').removeClass('hidden')
-          $('#settingsFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
-          return
+        if (passwordNew !== passwordNewRepeat) {
+          throw new Error('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
         }
-        if (error.name === 'HoodieUnauthorizedError') {
-          $('#settingsFailed').removeClass('hidden')
-          $('#settingsFailed').html('Dein aktuelles Passwort ist nicht korrekt eingegeben.')
-          return
-        }
-        $('#settingsFailed').html(error.message)
-        $('#settingsFailed').removeClass('hidden')
-      })
-    } else {
-      closeCounter -= 1
-    }
-
-    // change e-mail address
-    hoodie.store.updateOrAdd('userinfo', 'useremail', {'email': email})
-    .done(function () { // REVIEW promises
-      closeCounter -= 1
-      if (!closeCounter) {
-        $('#settingsModal').modal('hide')
+        // TODO check if HoodieConflictError and HoodieUnauthorizedError work
+        // TODO What happens if the user is offline on change?
+        return Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
       }
     })
-    .fail(function (error) { // REVIEW promises
-      $('#settingsFailed').html(error.message)
+    // 3. Finally hide the modal window
+    .then(function () {
+      $('#settingsModal').modal('hide')
+    })
+    // X. Catch any errors
+    .catch(function (error) {
       $('#settingsFailed').removeClass('hidden')
+      if (error.name === 'HoodieConflictError') {
+        $('#settingsFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
+      } else if (error.name === 'HoodieUnauthorizedError') {
+        $('#settingsFailed').html('Dein aktuelles Passwort ist nicht korrekt eingegeben.')
+      } else {
+        $('#settingsFailed').html(error.message)
+      }
     })
   })
+
   $('#settingsModal').on('hidden.bs.modal', function () {
     // empty password fields on modal close
     $('#settingsModal input[type=password]').val('')
   })
+
   hoodie.store.on('userinfo:add userinfo:update', function (item) {
     if (item.id === 'useremail') {
       $('#settingsEmail').val(item.email)
     }
   })
+
   hoodie.account.on('changeusername', function (newUsername) {
     $('.hoodieUsername').html(newUsername)
     $('#settingsName').val(newUsername)
@@ -1285,13 +1201,14 @@
     $('.insertToday').val(moment().format('DD.MM.YYYY'))
 
     // initialize the connection checker
+    // TODO Remove the connectionCheck? Or set the timeout to a longer value?
     connectionCheck = function () {
       window.setTimeout(function () {
         hoodie.checkConnection()
-        .done(function () { // REVIEW promises
+        .then(function () {
           $('.connectionOffline').addClass('hidden')
         })
-        .fail(function () { // REVIEW promises
+        .catch(function () {
           $('.connectionOffline').removeClass('hidden')
         })
         connectionCheck()
@@ -1355,86 +1272,28 @@
         var decrypted = Encryption.decryptIfSignedIn(object)
         return decrypted && decrypted.amount === $('#income-amount').autoNumeric('get')
       })
-      .done(function (sameAmountItems) { // REVIEW promises
+      .then(function (sameAmountItems) {
         if (sameAmountItems.length > 0) {
           // fetch the ID of the latest item with this amount
           var lastid = sameAmountItems.sort(function (a, b) {
             return b.createdAt - a.createdAt
-          })[0].id
+          })[0].id;
 
-          // set income-spend field
-          hoodie.store.findAll(function (object) {
-            if ((object.type) !== 'spenditem') {
-              return false
-            }
-            var decrypted = Encryption.decryptIfSignedIn(object)
-            return decrypted && decrypted.income === lastid
-          })
-          .done(function (items) { // REVIEW promises
-            if (items.length > 0) {
-              $('#income-spend').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-              updateIncomeSum()
-            }
-          })
-
-          // set income-contracts field
-          hoodie.store.findAll(function (object) {
-            if ((object.type) !== 'contractsitem') {
-              return false
-            }
-            var decrypted = Encryption.decryptIfSignedIn(object)
-            return decrypted && decrypted.income === lastid
-          })
-          .done(function (items) { // REVIEW promises
-            if (items.length > 0) {
-              $('#income-contracts').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-              updateIncomeSum()
-            }
-          })
-
-          // set income-save field
-          hoodie.store.findAll(function (object) {
-            if ((object.type) !== 'saveitem') {
-              return false
-            }
-            var decrypted = Encryption.decryptIfSignedIn(object)
-            return decrypted && decrypted.income === lastid
-          })
-          .done(function (items) { // REVIEW promises
-            if (items.length > 0) {
-              $('#income-save').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-              updateIncomeSum()
-            }
-          })
-
-          // set income-invest field
-          hoodie.store.findAll(function (object) {
-            if ((object.type) !== 'investitem') {
-              return false
-            }
-            var decrypted = Encryption.decryptIfSignedIn(object)
-            return decrypted && decrypted.income === lastid
-          })
-          .done(function (items) { // REVIEW promises
-            if (items.length > 0) {
-              $('#income-invest').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-              updateIncomeSum()
-            }
-          })
-
-          // set income-give field
-          hoodie.store.findAll(function (object) {
-            if ((object.type) !== 'giveitem') {
-              return false
-            }
-            var decrypted = Encryption.decryptIfSignedIn(object)
-            return decrypted && decrypted.income === lastid
-          })
-          .done(function (items) { // REVIEW promises
-            if (items.length > 0) {
-              $('#income-give').autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-              updateIncomeSum()
-            }
+          // set all budget fields
+          ['spend', 'contracts', 'save', 'invest', 'give'].forEach(function (budgetname) {
+            hoodie.store.findAll(function (object) {
+              if ((object.type) !== (budgetname + 'item')) {
+                return false
+              }
+              var decrypted = Encryption.decryptIfSignedIn(object)
+              return decrypted && decrypted.income === lastid
+            })
+            .then(function (items) {
+              if (items.length > 0) {
+                $('#income-' + budgetname).autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
+                updateIncomeSum()
+              }
+            })
           })
         } else {
           // calculate 10%
