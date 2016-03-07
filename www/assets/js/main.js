@@ -825,6 +825,7 @@
           updateMemo(memo)
         }
       })
+      .catch(function () {})
     }
     loadMemo()
 
@@ -936,6 +937,7 @@
       .then(function (item) {
         $('#settingsEmail').val(item.email)
       })
+      .catch(function () {})
     } else {
       // reset Encryption
       Encryption.reset()
@@ -993,7 +995,7 @@
     // 3. Queue removed items for encryption if the user wants to keep them
     .then(function (preSignInItems) {
       return new Promise(function (resolve, reject) {
-        if (preSignInItems) {
+        if (preSignInItems.length) {
           dialogModal('Daten behalten?',
             'Du hast gerade eben vor deiner Anmeldung Daten in Zehntel.org eingetragen. Möchtest du diese Einträge in deinen Account übernehmen?',
             'Daten übernehmen',
@@ -1041,13 +1043,7 @@
         }
       })
     })
-    // 4. Sign out first if signed in
-    .then(function () {
-      if (hoodie.account.username) {
-        return hoodie.account.signOut({ignoreLocalChanges: true})
-      }
-    })
-    // 5. Now sign in or up
+    // 4. Now sign in or up
     .then(function () {
       // Compute HMAC to authorize (never send the password to Hoodie!)
       var hmac = Encryption.authWithPassword(password)
@@ -1057,19 +1053,19 @@
         return hoodie.account.signIn(username, hmac)
       }
     })
-    // 6. Publish salt (if not already published)
+    // 5. Publish salt (if not already published)
     .then(function () {
       return Encryption.publishSalt()
     })
-    // 7. Enable encryption
+    // 6. Enable encryption
     .then(function () {
       return Encryption.enableEncryption()
     })
-    // 8. Everything done, set logged in state
+    // 7. Everything done, set logged in state
     .then(function () {
       setLoggedIn(true)
     })
-    // 9. Set user email info if entered
+    // 8. Set user email info if entered
     .then(function () {
       if (signup && email) {
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
@@ -1123,6 +1119,7 @@
 
     // hide previous errors
     $('#settingsFailed').addClass('hidden')
+    $('#settingsForm button').addClass('disabled')
 
     // Start the settings update chain
     Promise.resolve()
@@ -1139,6 +1136,7 @@
         if (passwordNew !== passwordNewRepeat) {
           throw new Error('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
         }
+        // TODO Change username, then logoff and login. It seems to send the old encryption-meta item on signin?
         // TODO check if HoodieConflictError and HoodieUnauthorizedError work
         // TODO What happens if the user is offline on change?
         return Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
@@ -1147,9 +1145,11 @@
     // 3. Finally hide the modal window
     .then(function () {
       $('#settingsModal').modal('hide')
+      $('#settingsForm button').removeClass('disabled')
     })
     // X. Catch any errors
     .catch(function (error) {
+      $('#settingsForm button').removeClass('disabled')
       $('#settingsFailed').removeClass('hidden')
       if (error.name === 'HoodieConflictError') {
         $('#settingsFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
@@ -1367,7 +1367,7 @@
         subject: strSubject,
         amount: strAmount
       }))
-      .done(function (income) { // REVIEW promises
+      .then(function (income) {
         incomeId = income.id
 
         if (strSpend > 0) {
@@ -1377,7 +1377,7 @@
             amount: strSpend,
             income: incomeId
           }))
-          .fail(function (error) { // REVIEW promises
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         }
@@ -1388,7 +1388,7 @@
             amount: strContracts,
             income: incomeId
           }))
-          .fail(function (error) { // REVIEW promises
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         }
@@ -1399,7 +1399,7 @@
             amount: strSave,
             income: incomeId
           }))
-          .fail(function (error) { // REVIEW promises
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         }
@@ -1410,7 +1410,7 @@
             amount: strInvest,
             income: incomeId
           }))
-          .fail(function (error) { // REVIEW promises
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         }
@@ -1421,7 +1421,7 @@
             amount: strGive,
             income: incomeId
           }))
-          .fail(function (error) { // REVIEW promises
+          .catch(function (error) {
             showHoodieError(error.message)
           })
         }
@@ -1436,7 +1436,7 @@
           $('#signupSuggestion').removeClass('hidden')
         }
       })
-      .fail(function (error) { // REVIEW promises
+      .catch(function (error) {
         showHoodieError(error.message)
       })
     })
