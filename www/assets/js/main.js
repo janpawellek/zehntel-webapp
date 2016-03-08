@@ -1180,7 +1180,6 @@
   // MAIN FUNCTION --------------------------------
   // execute when DOM is ready
   $(function () {
-    var connectionCheck
     var updateIncomeSum
     var budgets
 
@@ -1199,22 +1198,6 @@
 
     // insert today's date as default
     $('.insertToday').val(moment().format('DD.MM.YYYY'))
-
-    // initialize the connection checker
-    // TODO Remove the connectionCheck? Or set the timeout to a longer value?
-    connectionCheck = function () {
-      window.setTimeout(function () {
-        hoodie.checkConnection()
-        .then(function () {
-          $('.connectionOffline').addClass('hidden')
-        })
-        .catch(function () {
-          $('.connectionOffline').removeClass('hidden')
-        })
-        connectionCheck()
-      }, 1000)
-    }
-    connectionCheck()
 
     // show additional fields when the user wants to signUP
     $('input[type=radio][name=loginSignupOption]').change(function () {
