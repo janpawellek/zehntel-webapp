@@ -263,6 +263,20 @@
         return Encryption.init(usernameNew)
         // 2. Publish salt
         .then(function () {
+          // WORKAROUND !!!
+          // hoodie.account.changeUsername doesn't resolve if
+          // the username is already taken.
+          // If the salt if stored just after Encryption.init
+          // it means that it has already been published.
+          // Thus we ASSUME that the username is already taken.
+          // The workaround can be removed if hoodie.account.username
+          // sometimes rejects correctly with a HoodieConflictError.
+          if (saltStored) {
+            var error = new Error('The username already exists.')
+            error.name = 'HoodieConflictError'
+            throw error
+          }
+          // END OF WORKAROUND
           console.log('calling Encryption.publishSalt')
           return Encryption.publishSalt()
         })
@@ -270,15 +284,11 @@
         .then(function () {
           if (usernameNew !== hoodie.account.username) {
             console.log('calling changeUsername')
+            // This just keeps sending POST requests
+            // and doesn't resolve if usernameNew already exists.
+            // See the WORKAROUND above.
             return hoodie.account.changeUsername(hmacOld, usernameNew)
           }
-        })
-        // until now, everything can be restored on failure
-        .catch(function (error) {
-          restoreEncryptionBackup()
-          console.log('Error changing username or password. Restored.')
-          console.log(error)
-          throw error
         })
         // 4. Change password (always needed since salt changed)
         .then(function () {
@@ -294,9 +304,16 @@
           console.log('calling changePassword. hmacNew=' + hmacNew)
           return hoodie.account.changePassword(hmacOld, hmacNew)
         })
+        // until now, everything can be restored on failure
+        .catch(function (error) {
+          restoreEncryptionBackup()
+          console.log('Error changing username or password. Restored.')
+          console.log(error)
+          throw error
+        })
         // 5. Encrypt the encryption key with the new master key
         .then(function () {
-          var prp = new Aes(sjcl.codec.hex.toBits(masterkey)) // TODO check if this then really refers to the NEW master key
+          var prp = new Aes(sjcl.codec.hex.toBits(masterkey))
           var iv = sjcl.random.randomWords(keySize / 32)
           var adata = sjcl.random.randomWords(adataSize / 32)
           var enckeyenc = sjcl.mode.gcm.encrypt(
@@ -321,10 +338,10 @@
             enckeyenc: sjcl.codec.hex.fromBits(enckeyenc)
           })
         })
-        // 6. Force push changes
+        // 6. Force sync changes
         .then(function () {
-          console.log('calling remote.push')
-          return hoodie.remote.push()
+          console.log('calling remote.sync')
+          return hoodie.remote.sync()
         })
         // 7. Now everything is completed
         .then(function () {
@@ -983,6 +1000,9 @@
       }
     }
 
+    // disable login buttons during the login process
+    $('#loginForm button').addClass('disabled')
+
     // 1. Initialize Encryption
     Encryption.init(username)
     // 2. Remove all items that have been entered prior to sign in and are thus still unencrypted
@@ -1071,15 +1091,21 @@
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
       }
     })
+    // 9. Enable login button again
+    .then(function () {
+      $('#loginForm button').removeClass('disabled')
+    })
     // X. Catch error cases
     .catch(function (error) {
+      $('#loginForm button').removeClass('disabled')
       // username is already registered for sign up
       if (error.name === 'HoodieConflictError') {
         $('#signupFailed').removeClass('hidden')
         $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
+      } else {
+        $('#loginFailedDetail').html(error.message)
+        $('#loginFailed').removeClass('hidden')
       }
-      $('#loginFailedDetail').html(error.message)
-      $('#loginFailed').removeClass('hidden')
       if (hoodie.account.username) {
         setLoggedIn(false)
         return hoodie.account.signOut({ignoreLocalChanges: true})
@@ -1136,9 +1162,6 @@
         if (passwordNew !== passwordNewRepeat) {
           throw new Error('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
         }
-        // TODO Change username, then logoff and login. It seems to send the old encryption-meta item on signin?
-        // TODO check if HoodieConflictError and HoodieUnauthorizedError work
-        // TODO What happens if the user is offline on change?
         return Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
       }
     })
