@@ -65,6 +65,10 @@
   padding-top: 5px;
 }
 
+#loginForm input[name='loginSignupOption'] {
+  margin-top: 0px;
+}
+
 #dialogModal .modal-dialog {
   padding: 20px;
 }

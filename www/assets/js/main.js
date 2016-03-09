@@ -221,7 +221,7 @@
       // Changes the username or password or both.
       // Requires the user to be signed in.
       // Returns a promise.
-      changeUsernameOrPassword: function (passwordOld, usernameNew, passwordNew) {
+      changeUsernameOrPassword: function (hmacOld, usernameNew, passwordNew) {
         if (!initialized) {
           return Promise.reject('Need to initialize encryption prior to change username or password.')
         }
@@ -250,14 +250,6 @@
           encryptionkey = encryptionkeyBackup
         }
 
-        // Determine old HMAC
-        var hmacOld
-        try {
-          hmacOld = Encryption.authWithPassword(passwordOld)
-        } catch (e) {
-          return Promise.reject(e.message)
-        }
-
         // 1. Init new salt
         console.log('calling Encryption.init')
         return Encryption.init(usernameNew)
@@ -271,7 +263,7 @@
           // Thus we ASSUME that the username is already taken.
           // The workaround can be removed if hoodie.account.username
           // sometimes rejects correctly with a HoodieConflictError.
-          if (saltStored) {
+          if (saltStored && usernameNew !== hoodie.account.username) {
             var error = new Error('The username already exists.')
             error.name = 'HoodieConflictError'
             throw error
@@ -981,19 +973,43 @@
     var password = $('#loginPassword').val() // should never be sent
     var passwordRepeat = $('#loginPasswordRepeat').val() // should never be sent
     var email = $('#loginEmail').val()
-    var signup = $('input[type=radio][name=loginSignupOption]:checked').val() === 'signup' // false: sign-in
+    var masterkey = $('#loginMasterkey').val() // should never be sent
+    var newPassword = $('#loginNewPassword').val() // should never be sent
+    var newPasswordRepeat = $('#loginNewPasswordRepeat').val() // should never be sent
+    var option = $('input[type=radio][name=loginSignupOption]:checked').val()
+    if (['signup', 'signin', 'recovery'].indexOf(option) === -1) {
+      showHoodieError('Login option not set.')
+      return
+    }
 
     // hide previous errors
     $('#signupFailed, #loginFailed').addClass('hidden')
 
     // check for wrong or missing data
-    if (signup) {
+    if (option === 'signup') {
       if (!username || !password) {
         $('#signupFailed').removeClass('hidden')
         $('#signupFailed').html('Bitte gib einen Namen (kann auch ein Fantasiename sein) und ein Passwort ein.')
         return
       }
       if (password !== passwordRepeat) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
+        return
+      }
+    }
+    if (option === 'recovery') {
+      if (!username) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Bitte gib den Namen ein, mit dem du dich bei Zehntel.org angemeldet hast. Wenn du den Namen vergessen hast, wende dich bitte an team@zehntel.org.')
+        return
+      }
+      if (!newPassword) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Bitte gib ein neues Passwort ein, mit dem du dich ab sofort bei Zehntel.org anmelden möchtest.')
+        return
+      }
+      if (newPassword !== newPasswordRepeat) {
         $('#signupFailed').removeClass('hidden')
         $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
         return
@@ -1066,8 +1082,10 @@
     // 4. Now sign in or up
     .then(function () {
       // Compute HMAC to authorize (never send the password to Hoodie!)
-      var hmac = Encryption.authWithPassword(password)
-      if (signup) {
+      var hmac = option === 'recovery'
+        ? Encryption.authWithMasterKey(masterkey)
+        : Encryption.authWithPassword(password)
+      if (option === 'signup') {
         return hoodie.account.signUp(username, hmac)
       } else {
         return hoodie.account.signIn(username, hmac)
@@ -1081,17 +1099,24 @@
     .then(function () {
       return Encryption.enableEncryption()
     })
-    // 7. Everything done, set logged in state
+    // 7. Only on recovery: Set new password
+    .then(function () {
+      if (option === 'recovery') {
+        var hmacOld = Encryption.authWithMasterKey(masterkey)
+        return Encryption.changeUsernameOrPassword(hmacOld, username, newPassword)
+      }
+    })
+    // 8. Everything done, set logged in state
     .then(function () {
       setLoggedIn(true)
     })
-    // 8. Set user email info if entered
+    // 9. Only on signup: Set user email info if entered
     .then(function () {
-      if (signup && email) {
+      if (option === 'signup' && email) {
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
       }
     })
-    // 9. Enable login button again
+    // 10. Enable login button again
     .then(function () {
       $('#loginForm button').removeClass('disabled')
     })
@@ -1162,7 +1187,8 @@
         if (passwordNew !== passwordNewRepeat) {
           throw new Error('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
         }
-        return Encryption.changeUsernameOrPassword(passwordOld, username, passwordNew ? passwordNew : passwordOld)
+        var hmacOld = Encryption.authWithPassword(passwordOld)
+        return Encryption.changeUsernameOrPassword(hmacOld, username, passwordNew ? passwordNew : passwordOld)
       }
     })
     // 3. Finally hide the modal window
@@ -1222,17 +1248,33 @@
     // insert today's date as default
     $('.insertToday').val(moment().format('DD.MM.YYYY'))
 
-    // show additional fields when the user wants to signUP
+    // show additional fields when the user wants to signUP or recover
     $('input[type=radio][name=loginSignupOption]').change(function () {
       if (this.value === 'signin') {
         $('.loginSignup').addClass('hidden')
+        $('.loginRecovery').addClass('hidden')
+        $('.loginSignin').removeClass('hidden')
+      }
+      if (this.value === 'recovery') {
+        $('.loginSignin').addClass('hidden')
+        $('.loginSignup').addClass('hidden')
+        $('.loginRecovery').removeClass('hidden')
       }
       if (this.value === 'signup') {
+        $('.loginSignin').addClass('hidden')
+        $('.loginRecovery').addClass('hidden')
         $('.loginSignup').removeClass('hidden')
       }
     })
     if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'signup') {
+      $('.loginSignin').addClass('hidden')
+      $('.loginRecovery').addClass('hidden')
       $('.loginSignup').removeClass('hidden')
+    }
+    if ($('input[type=radio][name=loginSignupOption]:checked').val() === 'recovery') {
+      $('.loginSignin').addClass('hidden')
+      $('.loginSignup').addClass('hidden')
+      $('.loginRecovery').removeClass('hidden')
     }
 
     // INCOME INPUT -----------------------------
