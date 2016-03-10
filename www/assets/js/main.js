@@ -77,6 +77,47 @@
     })
   }
 
+  // Shows a dialog presenting the masterkey for storage.
+  // Returns a promise that gets fulfilled when the dialog is confirmed.
+  function masterkeyModal (masterkey, showWelcomeDialog) {
+    return new Promise(function (resolve, reject) {
+      // select dialog content
+      if (showWelcomeDialog) {
+        $('.masterkeyModalWelcome').removeClass('hidden')
+        $('.masterkeyModalChanged').addClass('hidden')
+      } else {
+        $('.masterkeyModalWelcome').addClass('hidden')
+        $('.masterkeyModalChanged').removeClass('hidden')
+      }
+      $('#masterkeyModalKey').html(masterkey)
+
+      // handle the confirmation checkbox
+      $('#masterkeyModalCheckbox').prop('checked', false)
+      $('#masterkeyModalCheckbox').change(function () {
+        if (this.checked) {
+          $('#masterkeyModalButton').removeClass('disabled')
+          $('#masterkeyModalButton').removeClass('hidden')
+        } else {
+          $('#masterkeyModalButton').addClass('disabled')
+          $('#masterkeyModalButton').addClass('hidden')
+        }
+      })
+
+      // handle the confirmation button
+      $('#masterkeyModalButton').off('click')
+      $('#masterkeyModalButton').addClass('disabled')
+      $('#masterkeyModalButton').addClass('hidden')
+      $('#masterkeyModalButton').click(function () {
+        $('#masterkeyModal').modal('hide')
+        $('#masterkeyModalKey').html('')
+        resolve()
+      })
+
+      // show the dialog
+      $('#masterkeyModal').modal({backdrop: 'static', keyboard: false})
+    })
+  }
+
   // ENCRYPTION
   Encryption = (function () {
     var usernameSha1
@@ -171,6 +212,7 @@
 
       // Authenticates with plain text password
       // Returns the HMAC for authentication at the server
+      // and the masterkey (should never be send to the server!)
       authWithPassword: function (password) {
         var hmacSHA1
         var key
@@ -200,7 +242,10 @@
           )
         )
         console.log('authWithPassword: derived master key: ' + key)
-        return this.authWithMasterKey(key)
+        return {
+          masterkey: key,
+          hmac: this.authWithMasterKey(key)
+        }
       },
 
       // Authenticates with master key
@@ -287,7 +332,7 @@
           // 4a. Generate new HMAC and master key
           var hmacNew
           try {
-            hmacNew = Encryption.authWithPassword(passwordNew)
+            hmacNew = Encryption.authWithPassword(passwordNew).hmac
           } catch (e) {
             return Promise.reject(e.message)
           }
@@ -531,6 +576,20 @@
         } else if (!saltStored || !enckeyStored) {
           return undefined
         } else return this.decrypt(item)
+      },
+
+      // Converts a SJCL hex string to Base58 encoding.
+      hexToBase58: function (hex) {
+        var bits = sjcl.codec.hex.toBits(hex)
+        var bytes = sjcl.codec.bytes.fromBits(bits)
+        return window.Base58.encode(bytes)
+      },
+
+      // Converts a Base58 encoded string to a SJCL hex string.
+      base58ToHex: function (base58) {
+        var bytes = window.Base58.decode(base58)
+        var bits = sjcl.codec.bytes.toBits(bytes)
+        return sjcl.codec.hex.fromBits(bits)
       }
     }
   })()
@@ -973,7 +1032,8 @@
     var password = $('#loginPassword').val() // should never be sent
     var passwordRepeat = $('#loginPasswordRepeat').val() // should never be sent
     var email = $('#loginEmail').val()
-    var masterkey = $('#loginMasterkey').val() // should never be sent
+    var masterkey58 = $('#loginMasterkey').val() // should never be sent
+    var masterkeyHex
     var newPassword = $('#loginNewPassword').val() // should never be sent
     var newPasswordRepeat = $('#loginNewPasswordRepeat').val() // should never be sent
     var option = $('input[type=radio][name=loginSignupOption]:checked').val()
@@ -1012,6 +1072,13 @@
       if (newPassword !== newPasswordRepeat) {
         $('#signupFailed').removeClass('hidden')
         $('#signupFailed').html('Das Passwort und die Passwortbestätigung stimmen nicht überein. Bitte stelle sicher, dass du dich nicht vertippt hast.')
+        return
+      }
+      try {
+        masterkeyHex = Encryption.base58ToHex(masterkey58)
+      } catch (e) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Der Masterkey ist ungültig. Bitte überprüfe, ob du dich nicht vertippt hast.')
         return
       }
     }
@@ -1083,8 +1150,8 @@
     .then(function () {
       // Compute HMAC to authorize (never send the password to Hoodie!)
       var hmac = option === 'recovery'
-        ? Encryption.authWithMasterKey(masterkey)
-        : Encryption.authWithPassword(password)
+        ? Encryption.authWithMasterKey(masterkeyHex)
+        : Encryption.authWithPassword(password).hmac
       if (option === 'signup') {
         return hoodie.account.signUp(username, hmac)
       } else {
@@ -1102,7 +1169,7 @@
     // 7. Only on recovery: Set new password
     .then(function () {
       if (option === 'recovery') {
-        var hmacOld = Encryption.authWithMasterKey(masterkey)
+        var hmacOld = Encryption.authWithMasterKey(masterkeyHex)
         return Encryption.changeUsernameOrPassword(hmacOld, username, newPassword)
       }
     })
@@ -1116,9 +1183,18 @@
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
       }
     })
-    // 10. Enable login button again
+    // 10. Enable login button again and show the Masterkey modal
     .then(function () {
+      var masterkey
       $('#loginForm button').removeClass('disabled')
+      if (option === 'signup') {
+        masterkey = Encryption.authWithPassword(password).masterkey
+        return masterkeyModal(Encryption.hexToBase58(masterkey), true)
+      }
+      if (option === 'recovery') {
+        masterkey = Encryption.authWithPassword(newPassword).masterkey
+        return masterkeyModal(Encryption.hexToBase58(masterkey), false)
+      }
     })
     // X. Catch error cases
     .catch(function (error) {
@@ -1127,6 +1203,9 @@
       if (error.name === 'HoodieConflictError') {
         $('#signupFailed').removeClass('hidden')
         $('#signupFailed').html('Dieser Name ist bereits bei Zehntel.org registriert. Bitte wähle einen anderen Namen.')
+      } else if (error.name === 'HoodieUnauthorizedError' && masterkeyHex) {
+        $('#signupFailed').removeClass('hidden')
+        $('#signupFailed').html('Der Masterkey ist ungültig. Bitte überprüfe, ob du dich nicht vertippt hast.')
       } else {
         $('#loginFailedDetail').html(error.message)
         $('#loginFailed').removeClass('hidden')
@@ -1167,6 +1246,7 @@
     var passwordNew = $('#settingsNewPassword').val()
     var passwordNewRepeat = $('#settingsNewPasswordRepeat').val()
     var email = $('#settingsEmail').val()
+    var shouldChangeUsernameOrPassword = username !== hoodie.account.username || (passwordNew || passwordNewRepeat)
 
     // hide previous errors
     $('#settingsFailed').addClass('hidden')
@@ -1180,21 +1260,28 @@
     })
     // 2. Change username and/or password (if requested)
     .then(function () {
-      if (username !== hoodie.account.username || (passwordNew || passwordNewRepeat)) {
+      if (shouldChangeUsernameOrPassword) {
         if (!passwordOld) {
           throw new Error('Bitte gib dein aktuelles Passwort ein, um deinen Namen oder das Passwort zu ändern.')
         }
         if (passwordNew !== passwordNewRepeat) {
           throw new Error('Das neue Passwort und die Wiederholung des neuen Passworts stimmen nicht überein.')
         }
-        var hmacOld = Encryption.authWithPassword(passwordOld)
+        var hmacOld = Encryption.authWithPassword(passwordOld).hmac
         return Encryption.changeUsernameOrPassword(hmacOld, username, passwordNew ? passwordNew : passwordOld)
       }
     })
-    // 3. Finally hide the modal window
+    // 3. Hide the modal window
     .then(function () {
       $('#settingsModal').modal('hide')
       $('#settingsForm button').removeClass('disabled')
+    })
+    // 4. Show the Masterkey modal
+    .then(function () {
+      if (shouldChangeUsernameOrPassword) {
+        var masterkey = Encryption.authWithPassword(passwordNew ? passwordNew : passwordOld).masterkey
+        return masterkeyModal(Encryption.hexToBase58(masterkey), false)
+      }
     })
     // X. Catch any errors
     .catch(function (error) {

@@ -250,6 +250,56 @@
     </div>
   </div>
 
+  <!-- MASTERKEY MODAL -->
+  <div class="modal fade" id="masterkeyModal" tabindex="-1" role="dialog" aria-labelledby="masterkeyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="masterkeyModalLabel">
+            <span class="masterkeyModalWelcome">Willkommen bei Zehntel.org!</span>
+            <span class="masterkeyModalChanged hidden">Dein neuer Masterkey</span>
+          </h4>
+        </div>
+        <div class="modal-body">
+          <div id="masterkeyModalContent">
+            <p class="masterkeyModalWelcome">
+              Danke, dass du dich bei Zehntel.org angemeldet hast!
+              Wir wissen, dass du einem Budgetplaner sehr sensible Daten anvertraust.
+              Daher haben wir einen besonderen Schutz programmiert: Alle deine Budgetdaten
+              werden automatisch verschlüsselt. Niemand, nicht einmal wir können diese Daten einsehen.
+            </p>
+            <p class="masterkeyModalChanged hidden">
+              Da du deinen Namen oder dein Passwort geändert hast, wurde ein <strong>neuer</strong> Masterkey generiert.
+              Wie du weißt, sind deine Daten bei Zehntel.org besonders sicher. Nicht einmal wir können
+              deine Daten einsehen.
+            </p>
+            <p>
+              Das bedeutet auch: Falls du einmal dein Passwort vergessen solltest,
+              können wir die Daten nicht wiederherstellen! Es ist daher ganz wichtig, dass du den folgenden
+              Masterkey sicher speicherst oder ausdruckst und an einem sicheren Ort aufhebst.
+              <strong>Nur damit kannst du im Notfall wieder Zugriff auf deinen Account bekommen.</strong>
+              Bitte halte den Masterkey unbedingt geheim! Danke dir <span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span>
+            </p>
+            <div class="voffset3">
+              <strong>
+                Dein <strong class="masterkeyModalChanged hidden">neuer (!)</strong> persönlicher geheimer Masterkey:
+              </strong>
+            </div>
+            <div id="masterkeyModalKey" class="alert alert-success onLogoffClearContent"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="checkbox pull-left">
+            <label>
+              <input id="masterkeyModalCheckbox" type="checkbox"> Ich habe den Masterkey sicher gespeichert oder aufbewahrt.
+            </label>
+          </div>
+          <button id="masterkeyModalButton" type="submit" class="btn btn-success">Weiter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="main-jumbotron" class="jumbotron onLoginHide">
   </div>
 
@@ -763,6 +813,8 @@
   <script src="assets/js/moment.min.js"></script>
   <script src="assets/js/sjcl.js"></script>
   <script src="assets/js/sha1.js"></script>
+  <script src="assets/js/codecBytes.js"></script>
+  <script src="assets/js/Base58.js"></script>
   <script src="assets/js/lie.polyfill.min.js"></script>
   <script src="/_api/_files/hoodie.js"></script>
   <script src="assets/js/main.js"></script>

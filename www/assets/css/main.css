@@ -65,8 +65,23 @@
   padding-top: 5px;
 }
 
-#loginForm input[name='loginSignupOption'] {
-  margin-top: 0px;
+#loginForm input[name="loginSignupOption"] {
+  margin-top: 0;
+}
+
+#masterkeyModal .modal-body {
+  max-height: calc(100vh - 212px);
+  overflow-y: auto;
+}
+
+#masterkeyModalCheckbox {
+  margin-top: 0;
+}
+
+#masterkeyModalKey {
+  font-size: 140%;
+  word-wrap: break-word;
+  margin-bottom: 10px;
 }
 
 #dialogModal .modal-dialog {
