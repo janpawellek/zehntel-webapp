@@ -146,7 +146,6 @@
         initialized = false
         saltStored = false
         enckeyStored = false
-        console.log('Encryption reset')
       },
 
       isInitialized: function () {
@@ -165,20 +164,17 @@
         }
         // Fetch Salt or init it randomly
         usernameSha1 = sjcl.codec.hex.fromBits(sjcl.hash.sha1.hash(username))
-        console.log('Encryption init. usernameSha1=' + usernameSha1)
         return hoodie.global.find('global-salts', usernameSha1)
         .then(function (result) {
           salt = result.salt
           initialized = true
           saltStored = true
-          console.log('Fetched from global salts: Salt=' + salt)
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
             salt = sjcl.codec.hex.fromBits(sjcl.random.randomWords(keySize / 32))
             initialized = true
             saltStored = false
-            console.log('Created new: Salt=' + salt)
           } else {
             throw error
           }
@@ -199,7 +195,6 @@
         if (saltStored) {
           return hoodie.global.find('global-salts', usernameSha1)
         }
-        console.log('Publish to global salts: Salt=' + salt)
         return hoodie.store.add('global-salts', {
           $public: true,
           id: usernameSha1,
@@ -241,7 +236,6 @@
             hmacSHA1
           )
         )
-        console.log('authWithPassword: derived master key: ' + key)
         return {
           masterkey: key,
           hmac: this.authWithMasterKey(key)
@@ -259,7 +253,6 @@
           sjcl.codec.hex.toBits(key),
           sjcl.hash.sha256
         ).mac(salt)))
-        console.log('authWithMasterKey: derived HMAC: ' + hmac)
         return hmac
       },
 
@@ -296,7 +289,6 @@
         }
 
         // 1. Init new salt
-        console.log('calling Encryption.init')
         return Encryption.init(usernameNew)
         // 2. Publish salt
         .then(function () {
@@ -314,13 +306,11 @@
             throw error
           }
           // END OF WORKAROUND
-          console.log('calling Encryption.publishSalt')
           return Encryption.publishSalt()
         })
         // 3. Change username (or do nothing if it doesn't change)
         .then(function () {
           if (usernameNew !== hoodie.account.username) {
-            console.log('calling changeUsername')
             // This just keeps sending POST requests
             // and doesn't resolve if usernameNew already exists.
             // See the WORKAROUND above.
@@ -338,14 +328,11 @@
           }
 
           // 4b. Change password at Hoodie
-          console.log('calling changePassword. hmacNew=' + hmacNew)
           return hoodie.account.changePassword(hmacOld, hmacNew)
         })
         // until now, everything can be restored on failure
         .catch(function (error) {
           restoreEncryptionBackup()
-          console.log('Error changing username or password. Restored.')
-          console.log(error)
           throw error
         })
         // 5. Encrypt the encryption key with the new master key
@@ -361,12 +348,6 @@
           )
           // Store encryption key internally
           encryptionkey = encryptionkeyBackup
-          console.log('Re-encrypted existing Encryption Key:' +
-            ' enckey: ' + encryptionkey +
-            ' iv: ' + sjcl.codec.hex.fromBits(iv) +
-            ' adata: ' + sjcl.codec.hex.fromBits(adata) +
-            ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
-          )
 
           // Save new encrypted encryption key
           return hoodie.store.update('encryption-meta', 'current', {
@@ -377,12 +358,10 @@
         })
         // 6. Force sync changes
         .then(function () {
-          console.log('calling remote.sync')
           return hoodie.remote.sync()
         })
         // 7. Now everything is completed
         .then(function () {
-          console.log('enckey stored')
           enckeyStored = true
         })
       },
@@ -409,8 +388,6 @@
         // Fetch encrypted Encryption Key from user store
         return hoodie.store.find('encryption-meta', 'current')
         .then(function (result) {
-          console.log('Found current encryption-meta item:')
-          console.log(result)
           // Unencrypt Encryption Key
           prp = new Aes(sjcl.codec.hex.toBits(masterkey))
           encryptionkey = sjcl.codec.hex.fromBits(sjcl.mode.gcm.decrypt(
@@ -419,7 +396,6 @@
             sjcl.codec.hex.toBits(result.iv),
             sjcl.codec.hex.toBits(result.adata)
           ))
-          console.log('Decrypted encryption key: ' + encryptionkey)
         })
         .catch(function (error) {
           if (error.name === 'HoodieNotFoundError') {
@@ -431,12 +407,6 @@
             enckeyenc = sjcl.mode.gcm.encrypt(prp, enckeybits, iv, adata)
             // Store encryption key internally
             encryptionkey = sjcl.codec.hex.fromBits(enckeybits)
-            console.log('Init new Encryption Key:' +
-              ' enckey: ' + encryptionkey +
-              ' iv: ' + sjcl.codec.hex.fromBits(iv) +
-              ' adata: ' + sjcl.codec.hex.fromBits(adata) +
-              ' enckeyenc: ' + sjcl.codec.hex.fromBits(enckeyenc)
-            )
 
             // Persist the encypted encryption key into user store
             return hoodie.store.add('encryption-meta', {
@@ -450,7 +420,6 @@
           }
         })
         .then(function () {
-          console.log('enckey stored, triggering encryptionReady')
           enckeyStored = true
           hoodie.trigger('encryptionReady')
         })
@@ -533,8 +502,7 @@
           throw new Error('Need to store encryption key prior to decrypt anything.')
         }
         if (!item.encryptedProperties) {
-          console.warn('Trying do decrypt an item which is not encrypted:')
-          console.warn(item)
+          throw new Error('Cannot decrypt item (encryptedProperties?)')
         }
 
         // Create new decrypted item
