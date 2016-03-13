@@ -997,13 +997,19 @@
 
       // hide login dialog and show user name
       $('#loginModal').modal('hide')
-      $('.hoodieUsername').html(hoodie.account.username)
+      $('.hoodieUsername').text(hoodie.account.username)
 
       // load settings
-      $('#settingsName').val(hoodie.account.username)
+      $('#settingsName').val(escapeHtml(hoodie.account.username))
+      hoodie.store.find('userinfo', 'fullname')
+      .then(function (item) {
+        $('#settingsName').val(escapeHtml(item.name))
+        $('.hoodieUsername').text(item.name)
+      })
+      .catch(function () {})
       hoodie.store.find('userinfo', 'useremail')
       .then(function (item) {
-        $('#settingsEmail').val(item.email)
+        $('#settingsEmail').val(escapeHtml(item.email))
       })
       .catch(function () {})
     } else {
@@ -1028,7 +1034,8 @@
   // LOGIN FORM SUBMIT
   $('#loginForm').submit(function (event) {
     event.preventDefault()
-    var username = $('#loginName').val()
+    var fullname = $('#loginName').val()
+    var username = fullname.toLowerCase()
     var password = $('#loginPassword').val() // should never be sent
     var passwordRepeat = $('#loginPasswordRepeat').val() // should never be sent
     var email = $('#loginEmail').val()
@@ -1177,13 +1184,19 @@
     .then(function () {
       setLoggedIn(true)
     })
-    // 9. Only on signup: Set user email info if entered
+    // 9. Only on signup: Set full name if it differs from the user name
+    .then(function () {
+      if (option === 'signup' && fullname !== username) {
+        return hoodie.store.add('userinfo', { id: 'fullname', name: fullname })
+      }
+    })
+    // 10. Only on signup: Set user email info if entered
     .then(function () {
       if (option === 'signup' && email) {
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
       }
     })
-    // 10. Enable login button again and show the Masterkey modal
+    // 11. Enable login button again and show the Masterkey modal
     .then(function () {
       var masterkey
       $('#loginForm button').removeClass('disabled')
@@ -1241,7 +1254,8 @@
   // SETTINGS -------------------------------------
   $('#settingsForm').submit(function (event) {
     event.preventDefault()
-    var username = $('#settingsName').val()
+    var fullname = $('#settingsName').val()
+    var username = fullname.toLowerCase()
     var passwordOld = $('#settingsOldPassword').val()
     var passwordNew = $('#settingsNewPassword').val()
     var passwordNewRepeat = $('#settingsNewPasswordRepeat').val()
@@ -1254,11 +1268,15 @@
 
     // Start the settings update chain
     Promise.resolve()
-    // 1. Change email address
+    // 1. Change full name
+    .then(function () {
+      return hoodie.store.updateOrAdd('userinfo', 'fullname', {'name': fullname})
+    })
+    // 2. Change email address
     .then(function () {
       return hoodie.store.updateOrAdd('userinfo', 'useremail', {'email': email})
     })
-    // 2. Change username and/or password (if requested)
+    // 3. Change username and/or password (if requested)
     .then(function () {
       if (shouldChangeUsernameOrPassword) {
         if (!passwordOld) {
@@ -1271,12 +1289,12 @@
         return Encryption.changeUsernameOrPassword(hmacOld, username, passwordNew ? passwordNew : passwordOld)
       }
     })
-    // 3. Hide the modal window
+    // 4. Hide the modal window
     .then(function () {
       $('#settingsModal').modal('hide')
       $('#settingsForm button').removeClass('disabled')
     })
-    // 4. Show the Masterkey modal
+    // 5. Show the Masterkey modal
     .then(function () {
       if (shouldChangeUsernameOrPassword) {
         var masterkey = Encryption.authWithPassword(passwordNew ? passwordNew : passwordOld).masterkey
@@ -1304,13 +1322,17 @@
 
   hoodie.store.on('userinfo:add userinfo:update', function (item) {
     if (item.id === 'useremail') {
-      $('#settingsEmail').val(item.email)
+      $('#settingsEmail').val(escapeHtml(item.email))
+    }
+    if (item.id === 'fullname') {
+      $('#settingsName').val(escapeHtml(item.name))
+      $('.hoodieUsername').text(item.name)
     }
   })
 
   hoodie.account.on('changeusername', function (newUsername) {
-    $('.hoodieUsername').html(newUsername)
-    $('#settingsName').val(newUsername)
+    $('.hoodieUsername').text(newUsername)
+    $('#settingsName').val(escapeHtml(newUsername))
   })
 
   // MAIN FUNCTION --------------------------------
@@ -1387,7 +1409,7 @@
       }
 
       givePercentage = (100 * strGive / strAmount).toFixed(0)
-      $('#income-give-percentage').html(givePercentage + ' %')
+      $('#income-give-percentage').text(givePercentage + ' %')
     }
 
     // on submit of new income open distribution form
