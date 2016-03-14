@@ -133,6 +133,38 @@ h1 > .negative-sum {
   margin-left: 20px;
 }
 
+.tab-pane h1 {
+  font-size: 180%;
+}
+
+.tab-pane tbody .form-group,
+.tab-pane tbody .input-group,
+.tab-pane tbody input[type="text"] {
+  width: 100%;
+}
+
+::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+  color: #999 !important;
+}
+
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #999 !important;
+  opacity: 1;
+}
+
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #999 !important;
+  opacity: 1;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #999 !important;
+}
+
+:placeholder-shown { /* Standard (https://drafts.csswg.org/selectors-4/#placeholder) */
+  color: #999 !important;
+}
+
 .transactions-table {
   word-wrap: break-word;
   table-layout: fixed;

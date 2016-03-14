@@ -319,7 +319,8 @@
 
     <div id="signupSuggestion" class="alert alert-warning hidden onLoginHide" role="alert">
       Danke, dass du Zehntel.org ausprobierst. Du kannst gerne alles testen und dich umschauen.
-      Bitte beachte, dass deine Daten erst dann fest gespeichert werden, wenn du dich kostenlos anmeldest.
+      Bitte beachte, dass deine Daten erst dann auf Zehntel.org gespeichert werden, wenn du dich kostenlos anmeldest.
+      Alle Daten werden so verschlüsselt, dass niemand sie einsehen kann, nicht einmal wir selbst.
       <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">Jetzt anmelden.</a>
     </div>
 
@@ -327,7 +328,7 @@
     <form id="income-new-form">
       <div class="row">
         <div class="col-md-2 income-new-form-label">
-          <strong>Einnahmen hier eintragen</strong>
+          <strong>Einnahme hier eintragen</strong>
           <span class="income-hand glyphicon glyphicon-hand-down visible-xs-inline-block visible-sm-inline-block" aria-hidden="true"></span>
           <span class="income-hand glyphicon glyphicon-hand-right visible-md-inline-block visible-lg-inline-block" aria-hidden="true"></span>
         </div>
@@ -455,11 +456,15 @@
             <h1>
               <span class="onEmptyShow">Dein Budget</span>
               <span class="give-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für gute Zwecke
+              zum Welt-Verändern
             </h1>
-            <p>Wie viel ist dir eine gute Sache wert, an die du glaubst? Ein Zehntel deiner Einnahmen oder mehr oder weniger... hier kannst du die Beträge sammeln, um sie gezielt zu geben.</p>
+            <p>
+              Wo unsere Schätze sind, da wird auch unser Herz sein.
+              Wofür schlägt dein Herz? Etwas abgeben, um anderen zu helfen, bedeutet effektiv die Welt zu verändern. <br>
+              Hier kannst du die Beträge sammeln, die du geben möchtest. Du entscheidest, was du wichtig findest. Du machst einen Unterschied.
+            </p>
             <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich kann pro Monat so viel geben:
+              Memo an mich selbst: Ich möchte pro Monat so viel geben:
               <span id="give-memo-change" class="onLogoffShow">
                 <label class="sr-only" for="give-memo">Betrag (in Euro)</label>
                 <div class="input-group">
@@ -498,9 +503,9 @@
                 </td>
                 <td>
                   <div class="form-group">
-                    <label class="sr-only" for="give-input-subject">Wofür?</label>
+                    <label class="sr-only" for="give-input-subject">Ausgaben aus diesem Budget hier eintragen</label>
                     <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Wofür?">
+                      <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Ausgabe aus dem Zehntel-Budget hier eintragen">
                     </div>
                   </div>
                 </td>
@@ -528,7 +533,7 @@
               <span class="spend-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
               zum Ausgeben
             </h1>
-            <p>Für alles, was du dir zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jeden Kaffee einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein.</p>
+            <p>Für alles, was du dir zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jeden Kaffee einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein. Oder regelmäßig deine Kontoauszüge.</p>
             <div class="form-group onEmptyHide hidden">
               Memo an mich selbst: Ich brauche pro Monat zum Ausgeben ungefähr:
               <span id="spend-memo-change" class="onLogoffShow">
@@ -569,9 +574,9 @@
                 </td>
                 <td>
                   <div class="form-group">
-                    <label class="sr-only" for="spend-input-subject">Wofür?</label>
+                    <label class="sr-only" for="spend-input-subject">Ausgabe aus dem Ausgeben-Budget hier eintragen</label>
                     <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-subject" placeholder="Wofür?">
+                      <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-subject" placeholder="Ausgabe aus dem Ausgeben-Budget hier eintragen">
                     </div>
                   </div>
                 </td>
@@ -599,7 +604,7 @@
               <span class="contracts-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
               für Verträge
             </h1>
-            <p>Für alle regelmäßigen Zahlungen: Miete, Handy, Internet, Gebühren. Tipp: Rechne jährliche oder halbjährliche Ausgaben auf einen Monat herunter und summiere alles zusammen, um nicht von jährlichen Rechnungen überrascht zu werden.</p>
+            <p>Für alle regelmäßigen Zahlungen: Miete, Handy, Internet, Gebühren. Tipp: Rechne jährliche oder halbjährliche Ausgaben auf einen Monat herunter und trage die Summe hier in das Memo an dich selbst ein. So hast du immer genug Puffer, auch für große Rechnungen, die nur einmal im Jahr kommen.</p>
             <div class="form-group onEmptyHide hidden">
               Memo an mich selbst: Ich brauche pro Monat für regelmäßige Zahlungen ungefähr:
               <span id="contracts-memo-change" class="onLogoffShow">
@@ -640,9 +645,9 @@
                 </td>
                 <td>
                   <div class="form-group">
-                    <label class="sr-only" for="contracts-input-subject">Wofür?</label>
+                    <label class="sr-only" for="contracts-input-subject">Ausgabe aus dem Verträge-Budget hier eintragen</label>
                     <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="contracts-input-subject" placeholder="Wofür?">
+                      <input type="text" class="form-control input-sm onLogoffClearVal" id="contracts-input-subject" placeholder="Ausgabe aus dem Verträge-Budget hier eintragen">
                     </div>
                   </div>
                 </td>
@@ -668,9 +673,9 @@
             <h1>
               <span class="onEmptyShow">Dein Budget</span>
               <span class="save-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für einen Wunsch
+              für die Wunschfee
             </h1>
-            <p>Dieses Budget hat eine integrierte Wunsch-Erfüll-Funktion. Such dir einen Wunsch heraus und komme ihm jeden Monat näher!</p>
+            <p>Drei Wünsche frei? Mach es zur Realität. Hier kannst du die Beträge sammeln, die du sparen möchtest, um deinem Traum immer näher zu kommen. Und dann: Gönn dir!</p>
             <div class="form-group onEmptyHide hidden">
               Memo an mich selbst: Ich möchte jeden Monat so viel zurücklegen:
               <span id="save-memo-change" class="onLogoffShow">
@@ -711,9 +716,9 @@
                 </td>
                 <td>
                   <div class="form-group">
-                    <label class="sr-only" for="save-input-subject">Wofür?</label>
+                    <label class="sr-only" for="save-input-subject">Ausgabe aus dem Sparen-Budget hier eintragen</label>
                     <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="save-input-subject" placeholder="Wofür?">
+                      <input type="text" class="form-control input-sm onLogoffClearVal" id="save-input-subject" placeholder="Ausgabe aus dem Sparen-Budget hier eintragen">
                     </div>
                   </div>
                 </td>
@@ -739,9 +744,9 @@
             <h1>
               <span class="onEmptyShow">Dein Budget</span>
               <span class="invest-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für große Projekte
+              für Investitionen
             </h1>
-            <p>Mit Geld kann man viele sinnvolle Dinge tun. Ob du in eine Ausbildung investieren möchtest oder in langfristige Anlagen: Auch ein kleiner Betrag pro Monat macht einen Unterschied.</p>
+            <p>Investieren bedeutet: Geld so einsetzen, dass am Ende mehr daraus wird. Du kannst zum Beispiel in deine Bildung investieren. Oder in eine Altersvorsorge. Oder in ein Projekt, an dem du beteiligt bist. Hier kannst du die Beträge verwalten, die du dafür brauchst.</p>
             <div class="form-group onEmptyHide hidden">
               Memo an mich selbst: Ich möchte pro Monat so viel investieren:
               <span id="invest-memo-change" class="onLogoffShow">
@@ -782,9 +787,9 @@
                 </td>
                 <td>
                   <div class="form-group">
-                    <label class="sr-only" for="invest-input-subject">Wofür?</label>
+                    <label class="sr-only" for="invest-input-subject">Ausgabe aus dem Investieren-Budget hier eintragen</label>
                     <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="invest-input-subject" placeholder="Wofür?">
+                      <input type="text" class="form-control input-sm onLogoffClearVal" id="invest-input-subject" placeholder="Ausgabe aus dem Investieren-Budget hier eintragen">
                     </div>
                   </div>
                 </td>
