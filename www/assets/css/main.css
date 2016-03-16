@@ -14,7 +14,7 @@
 #main-jumbotron {
   background: url("../img/zehntel-desk.jpg") no-repeat bottom center;
   min-height: 80vh;
-  min-height: calc(100vh - 60px - 160px);
+  min-height: calc(100vh - 60px - 200px);
   background-size: cover;
 }
 
