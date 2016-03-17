@@ -39,7 +39,7 @@
   function showHoodieError (message) {
     messageModal('Bitte entschuldige',
     'Leider hat das gerade nicht funktioniert. Versuche es bitte noch einmal. Falls dieses Problem wieder auftritt, lade bitte die Seite neu.' +
-    'Wenn das nicht hilft, wende dich bitte an <a href="mailto:team@zehntel.org">team@zehntel.org</a>. Bitte verzeihe uns die Unannehmlichkeiten.' +
+    'Wenn das nicht hilft, wende dich bitte an <a href="mailto:jan@zehntel.org">jan@zehntel.org</a>. Bitte verzeihe uns die Unannehmlichkeiten.' +
     '<br><br>Das System meldet: <i>' + message + '</i>',
     'OK')
   }
@@ -1036,7 +1036,7 @@
     if (option === 'recovery') {
       if (!username) {
         $('#signupFailed').removeClass('hidden')
-        $('#signupFailed').html('Bitte gib den Namen ein, mit dem du dich bei Zehntel.org angemeldet hast. Wenn du den Namen vergessen hast, wende dich bitte an team@zehntel.org.')
+        $('#signupFailed').html('Bitte gib den Namen ein, mit dem du dich bei Zehntel.org angemeldet hast. Wenn du den Namen vergessen hast, wende dich bitte an jan@zehntel.org.')
         return
       }
       if (!newPassword) {
