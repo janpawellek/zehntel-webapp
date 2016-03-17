@@ -1311,13 +1311,6 @@
     var updateIncomeSum
     var budgets
 
-    // handle CTA button
-    $('#ctaButton').on('click', function () {
-      $('#main-jumbotron').addClass('hidden')
-      $('#cta-container').addClass('hidden')
-      $('#main-container').removeClass('hidden')
-    })
-
     // enable tooltips
     $('[data-toggle="tooltip"]').tooltip()
 
