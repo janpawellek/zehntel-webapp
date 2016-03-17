@@ -1203,6 +1203,8 @@
     .then(function () {
       // logout successful
       setLoggedIn(false)
+      // show the logoff message
+      $('#logoffMessage').removeClass('hidden')
     })
     .catch(function (error) {
       // logout failed
