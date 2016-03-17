@@ -1435,6 +1435,7 @@
 
     // update income sum if any field gets changed
     $('.onChangeUpdateIncomeSum').change(updateIncomeSum)
+    $('.onChangeUpdateIncomeSum').keypress(updateIncomeSum)
 
     $('#income-dist-form').on('submit', function (event) {
       event.preventDefault()
