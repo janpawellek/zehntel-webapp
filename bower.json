@@ -1,0 +1,39 @@
+{
+  "name": "zehntel-webapp",
+  "description": "Zehntel is a budget planner written with Hoodie that helps to do good with money.",
+  "main": "www/index.html",
+  "authors": [
+    "Jan Pawellek <git@janpawellek.de>"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "Zehntel",
+    "finance",
+    "budget",
+    "encryption",
+    "Hoodie",
+    "webapp"
+  ],
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "homepage": "https://zehntel.org",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "autoNumeric": "^1.9.43",
+    "jquery": "^2.2.2",
+    "lie": "^3.0.2",
+    "sjcl": "^1.0.3",
+    "moment": "^2.12.0",
+    "Base58": "45678/Base58",
+    "bootswatch": "^3.3.6+1",
+    "bootstrap": "^3.3.6"
+  }
+}

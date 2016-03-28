@@ -1,7 +1,5 @@
 data/
 node_modules/
-*.sublime-project
-*.sublime-workspace
+bower_components/
 *.bak
 .ports.json
-www/assets/img/zehntel-desk.jpg
