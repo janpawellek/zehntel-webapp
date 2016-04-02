@@ -985,17 +985,58 @@ limitations under the License.
 
       // load settings
       $('#settingsName').val(escapeHtml(hoodie.account.username))
+
       hoodie.store.find('userinfo', 'fullname')
       .then(function (item) {
         $('#settingsName').val(escapeHtml(item.name))
         $('.hoodieUsername').text(item.name)
       })
       .catch(function () {})
+
       hoodie.store.find('userinfo', 'useremail')
       .then(function (item) {
         $('#settingsEmail').val(escapeHtml(item.email))
       })
       .catch(function () {})
+
+      hoodie.store.find('userinfo', 'subscription')
+      .then(function (item) {
+        if (!item.until) {
+          $('#buySuggestion').removeClass('hidden')
+          $('#rebuySuggestion').addClass('hidden')
+          $('.settingsModalBuyRequest').removeClass('hidden')
+          $('.settingsModalBought').addClass('hidden')
+          $('.settingsModalBuyExpired').addClass('hidden')
+          return
+        }
+
+        // Find if subscription is still active or expired
+        var until = moment(item.until, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD', 'YYYY-MM-DD', 'YY-MM-DD'], true)
+        var today = moment().toDate()
+        $('.boughtUntil').text(until.format('DD.MM.YYYY'))
+        if (until < today) {
+          // expired
+          $('#buySuggestion').addClass('hidden')
+          $('#rebuySuggestion').removeClass('hidden')
+          $('.settingsModalBuyRequest').removeClass('hidden')
+          $('.settingsModalBought').addClass('hidden')
+          $('.settingsModalBuyExpired').removeClass('hidden')
+        } else {
+          // valid subscription
+          $('#buySuggestion').addClass('hidden')
+          $('#rebuySuggestion').addClass('hidden')
+          $('.settingsModalBuyRequest').addClass('hidden')
+          $('.settingsModalBought').removeClass('hidden')
+          $('.settingsModalBuyExpired').addClass('hidden')
+        }
+      })
+      .catch(function () {
+        $('#buySuggestion').removeClass('hidden')
+        $('#rebuySuggestion').addClass('hidden')
+        $('.settingsModalBuyRequest').removeClass('hidden')
+        $('.settingsModalBought').addClass('hidden')
+        $('.settingsModalBuyExpired').addClass('hidden')
+      })
     } else {
       // reset Encryption
       Encryption.reset()
@@ -1180,7 +1221,13 @@ limitations under the License.
         return hoodie.store.add('userinfo', { id: 'useremail', email: email })
       }
     })
-    // 11. Enable login button again and show the Masterkey modal
+    // 11. Only on signup: Set subscription info
+    .then(function () {
+      if (option === 'signup') {
+        return hoodie.store.add('userinfo', { id: 'subscription', until: null })
+      }
+    })
+    // 12. Enable login button again and show the Masterkey modal
     .then(function () {
       var masterkey
       $('#loginForm button').removeClass('disabled')
@@ -1314,6 +1361,36 @@ limitations under the License.
       $('#settingsName').val(escapeHtml(item.name))
       $('.hoodieUsername').text(item.name)
     }
+    if (item.id === 'subscription') {
+      if (!item.until) {
+        $('#buySuggestion').removeClass('hidden')
+        $('#rebuySuggestion').addClass('hidden')
+        $('.settingsModalBuyRequest').removeClass('hidden')
+        $('.settingsModalBought').addClass('hidden')
+        $('.settingsModalBuyExpired').addClass('hidden')
+        return
+      }
+
+      // Find if subscription is still active or expired
+      var until = moment(item.until, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD', 'YYYY-MM-DD', 'YY-MM-DD'], true)
+      var today = moment().toDate()
+      $('.boughtUntil').text(until.format('DD.MM.YYYY'))
+      if (until < today) {
+        // expired
+        $('#buySuggestion').addClass('hidden')
+        $('#rebuySuggestion').removeClass('hidden')
+        $('.settingsModalBuyRequest').removeClass('hidden')
+        $('.settingsModalBought').addClass('hidden')
+        $('.settingsModalBuyExpired').removeClass('hidden')
+      } else {
+        // valid subscription
+        $('#buySuggestion').addClass('hidden')
+        $('#rebuySuggestion').addClass('hidden')
+        $('.settingsModalBuyRequest').addClass('hidden')
+        $('.settingsModalBought').removeClass('hidden')
+        $('.settingsModalBuyExpired').addClass('hidden')
+      }
+    }
   })
 
   hoodie.account.on('changeusername', function (newUsername) {
@@ -1335,6 +1412,14 @@ limitations under the License.
 
     // insert today's date as default
     $('.insertToday').val(moment().format('DD.MM.YYYY'))
+
+    // enable the buy link to switch to the correct tab
+    $('.showBuyTab').click(function () {
+      $('#settingsModal .nav-tabs .active').removeClass('active')
+      $('#settingsModal .nav-tabs #nav-tab-settings-buy').addClass('active')
+      $('#settingsModal .tab-pane.active').removeClass('active')
+      $('#settingsModal #settings-buy').addClass('active')
+    })
 
     // show additional fields when the user wants to signUP or recover
     $('input[type=radio][name=loginSignupOption]').change(function () {
