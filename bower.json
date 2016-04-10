@@ -34,6 +34,7 @@
     "moment": "^2.12.0",
     "Base58": "45678/Base58",
     "bootswatch": "^3.3.6+1",
-    "bootstrap": "^3.3.6"
+    "bootstrap": "^3.3.6",
+    "handlebars": "^4.0.5"
   }
 }

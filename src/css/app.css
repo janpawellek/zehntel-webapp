@@ -104,6 +104,10 @@ limitations under the License.
   padding: 20px;
 }
 
+#settingsModal .list-group-item {
+  padding: 10px 15px;
+}
+
 @media (min-width: 768px) {
   .tab-pane.panel {
     border-top: 0;
