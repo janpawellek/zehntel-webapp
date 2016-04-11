@@ -1,0 +1,72 @@
+<form role="tabpanel" class="tab-pane {{budget-first-tab}} panel panel-default form-inline" id="{{budget-id}}-panel">
+  <div class="panel-body">
+    <h1>
+      <span class="onEmptyShow">Dein Budget</span>
+      <span class="{{budget-id}}-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
+      {{budget-title}}
+    </h1>
+    <p>
+      {{{budget-description}}}
+    </p>
+    <div class="form-group onEmptyHide hidden">
+      Memo an mich selbst: {{budget-memo}}
+      <span id="{{budget-id}}-memo-change" class="onLogoffShow">
+        <label class="sr-only" for="{{budget-id}}-memo">Betrag (in Euro)</label>
+        <div class="input-group">
+          <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="{{budget-id}}-memo" placeholder="0,00 €">
+        </div>
+        <button type="submit" class="btn btn-success btn-sm">Speichern</button>
+      </span>
+      <span id="{{budget-id}}-memo-show" class="hidden onLogoffHide">
+        <strong id="{{budget-id}}-memo-show-amount" class="onLogoffClearContent"></strong>
+        <a href="#" id="{{budget-id}}-memo-changeit">ändern</a>
+      </span>
+    </div>
+    <div class="alert alert-warning voffset3 onEmptyShow">
+      Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
+      <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
+    </div>
+  </div>
+  <table class="transactions-table table table-striped onEmptyHide hidden">
+    <thead>
+      <tr>
+        <th class="th-date">Wann?</th>
+        <th class="th-subject">Woher? / Wofür?</th>
+        <th class="th-amount">Wieviel?</th>
+        <th class="th-button"></th>
+      </tr>
+    </thead>
+    <tbody id="{{budget-id}}-transactions" class="onLogoffClearContent"></tbody>
+    <tbody>
+      <tr>
+        <td>
+          <div class="form-group">
+            <label class="sr-only" for="{{budget-id}}-input-date">Wann?</label>
+            <div class="input-group">
+              <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="{{budget-id}}-input-date">
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="form-group">
+            <label class="sr-only" for="{{budget-id}}-input-subject">Ausgaben aus dem {{budget-name}}-Budget hier eintragen</label>
+            <div class="input-group">
+              <input type="text" class="form-control input-sm onLogoffClearVal" id="{{budget-id}}-input-subject" placeholder="Ausgabe aus dem {{budget-name}}-Budget hier eintragen">
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="form-group">
+            <label class="sr-only" for="{{budget-id}}-input-amount">Wieviel?</label>
+            <div class="input-group">
+              <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="{{budget-id}}-input-amount" placeholder="0,00 €">
+            </div>
+          </div>
+        </td>
+        <td class="transaction-dropdown">
+          <button type="submit" class="btn btn-success btn-sm">OK</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>

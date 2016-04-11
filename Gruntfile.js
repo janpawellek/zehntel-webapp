@@ -46,16 +46,26 @@ module.exports = function (grunt) {
           {
             expand: true,
             flatten: true,
-            src: ['src/css/app.css', 'src/js/app.js', 'src/index.html'],
+            src: ['src/css/app.css', 'src/js/app.js'],
             dest: 'www/'
           }
         ]
+      }
+    },
+
+    // Process HTML file includes
+    includes: {
+      files: {
+        src: ['src/index.html'],
+        dest: 'www/',
+        flatten: true
       }
     }
   })
 
   grunt.loadNpmTasks('grunt-bower-concat')
   grunt.loadNpmTasks('grunt-contrib-copy')
+  grunt.loadNpmTasks('grunt-includes')
 
-  grunt.registerTask('default', ['bower_concat', 'copy'])
+  grunt.registerTask('default', ['bower_concat', 'copy', 'includes'])
 }

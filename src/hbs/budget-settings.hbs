@@ -1,0 +1,17 @@
+<li id="budget-settings-list-item-{{budget-id}}" class="list-group-item">
+  <div class="btn-group btn-group-sm pull-right" role="group">
+    <button type="button" class="btn btn-default budget-up-button" aria-label="hoch bewegen">
+      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="btn btn-default budget-down-button" aria-label="runter bewegen">
+      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="btn btn-danger budget-hide-button onLogoffShow">ausblenden</button>
+    <button type="button" class="btn btn-success budget-show-button hidden onLogoffHide">anzeigen</button>
+    <button type="button" class="btn btn-danger budget-delete-button hidden onLogoffHide">löschen</button>
+  </div>
+  <h4 class="list-group-item-heading">
+    {{#if budget-heart}}<span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span>{{/if}}
+    {{budget-name}}
+  </h4>
+</li>

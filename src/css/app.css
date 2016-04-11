@@ -108,6 +108,13 @@ limitations under the License.
   padding: 10px 15px;
 }
 
+#settingsModal .budget-hide-button,
+#settingsModal .budget-show-button,
+#settingsModal .budget-delete-button {
+  border-bottom-right-radius: 3px !important;
+  border-top-right-radius: 3px !important;
+}
+
 @media (min-width: 768px) {
   .tab-pane.panel {
     border-top: 0;
@@ -151,6 +158,11 @@ h1 > .negative-sum {
   font-size: 140%;
   margin-bottom: 20px;
   margin-left: 20px;
+}
+
+.input-group-addon {
+  min-width: 70px;
+  text-align: right;
 }
 
 .tab-pane h1 {

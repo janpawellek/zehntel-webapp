@@ -176,7 +176,7 @@ limitations under the License.
   <!-- SETTINGS MODAL -->
   <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <form id="settingsForm" class="modal-content form-horizontal">
+      <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Abbrechen">
             <span aria-hidden="true">&times;</span>
@@ -194,116 +194,52 @@ limitations under the License.
           <!-- Settings panes -->
           <div class="tab-content voffset3">
             <div role="tabpanel" class="tab-pane active" id="settings-data">
-              <div id="settingsFailed" class="alert alert-danger onLogoffHide onLogoffClearContent hidden" role="alert"></div>
-              <div class="form-group">
-                <label for="settingsName" class="col-sm-2 control-label">Name</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control onLogoffClearVal" id="settingsName" placeholder="Name">
+              <form id="settingsForm" class="form-horizontal">
+                <div id="settingsFailed" class="alert alert-danger onLogoffHide onLogoffClearContent hidden" role="alert"></div>
+                <div class="form-group">
+                  <label for="settingsName" class="col-sm-2 control-label">Name</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control onLogoffClearVal" id="settingsName" placeholder="Name">
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="settingsOldPassword" class="col-sm-2 control-label">Aktuelles Passwort</label>
-                <div class="col-sm-10">
-                  <input type="password" class="form-control onLogoffClearVal" id="settingsOldPassword" placeholder="Passwort">
+                <div class="form-group">
+                  <label for="settingsOldPassword" class="col-sm-2 control-label">Aktuelles Passwort</label>
+                  <div class="col-sm-10">
+                    <input type="password" class="form-control onLogoffClearVal" id="settingsOldPassword" placeholder="Passwort">
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="settingsNewPassword" class="col-sm-2 control-label multiline">Neues Passwort</label>
-                <div class="col-sm-10">
-                  <input type="password" class="form-control onLogoffClearVal" id="settingsNewPassword" placeholder="leer lassen, um unverändert zu lassen">
+                <div class="form-group">
+                  <label for="settingsNewPassword" class="col-sm-2 control-label multiline">Neues Passwort</label>
+                  <div class="col-sm-10">
+                    <input type="password" class="form-control onLogoffClearVal" id="settingsNewPassword" placeholder="leer lassen, um unverändert zu lassen">
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="settingsNewPasswordRepeat" class="col-sm-2 control-label multiline">Passwort wiederholen</label>
-                <div class="col-sm-10">
-                  <input type="password" class="form-control onLogoffClearVal" id="settingsNewPasswordRepeat" placeholder="leer lassen, um unverändert zu lassen">
+                <div class="form-group">
+                  <label for="settingsNewPasswordRepeat" class="col-sm-2 control-label multiline">Passwort wiederholen</label>
+                  <div class="col-sm-10">
+                    <input type="password" class="form-control onLogoffClearVal" id="settingsNewPasswordRepeat" placeholder="leer lassen, um unverändert zu lassen">
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="settingsEmail" class="col-sm-2 control-label multiline">E-Mail</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control onLogoffClearVal" id="settingsEmail" placeholder="E-Mail-Adresse">
+                <div class="form-group">
+                  <label for="settingsEmail" class="col-sm-2 control-label multiline">E-Mail</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control onLogoffClearVal" id="settingsEmail" placeholder="E-Mail-Adresse">
+                  </div>
                 </div>
-              </div>
+                <div class="form-group">
+                  <div class="col-sm-2"></div>
+                  <div class="col-sm-10">
+                    <button type="submit" class="pull-right btn btn-success">Änderungen speichern</button>
+                  </div>
+                </div>
+              </form>
             </div>
             <div role="tabpanel" class="tab-pane" id="settings-budgets">
               <p>
                 Hier kannst du eigene Budgets erstellen, löschen oder die Reihenfolge verschieben.
                 Standardbudgets kannst du nur ausblenden, nicht löschen.
               </p>
-              <ul class="list-group list-group-sm">
-                <li class="list-group-item">
-                  <div class="btn-group btn-group-sm pull-right" role="group">
-                    <button type="button" class="btn btn-default" aria-label="hoch bewegen">
-                      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-default" aria-label="runter bewegen">
-                      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-danger">ausblenden</button>
-                  </div>
-                  <h4 class="list-group-item-heading">
-                    <span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span>
-                    Zehntel
-                  </h4>
-                </li>
-                <li class="list-group-item">
-                  <div class="btn-group btn-group-sm pull-right" role="group">
-                    <button type="button" class="btn btn-default" aria-label="hoch bewegen">
-                      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-default" aria-label="runter bewegen">
-                      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-danger">ausblenden</button>
-                  </div>
-                  <h4 class="list-group-item-heading">
-                    Ausgeben
-                  </h4>
-                </li>
-                <li class="list-group-item">
-                  <div class="btn-group btn-group-sm pull-right" role="group">
-                    <button type="button" class="btn btn-default" aria-label="hoch bewegen">
-                      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-default" aria-label="runter bewegen">
-                      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-danger">ausblenden</button>
-                  </div>
-                  <h4 class="list-group-item-heading">
-                    Verträge
-                  </h4>
-                </li>
-                <li class="list-group-item">
-                  <div class="btn-group btn-group-sm pull-right" role="group">
-                    <button type="button" class="btn btn-default" aria-label="hoch bewegen">
-                      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-default" aria-label="runter bewegen">
-                      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-danger">ausblenden</button>
-                  </div>
-                  <h4 class="list-group-item-heading">
-                    Sparen
-                  </h4>
-                </li>
-                <li class="list-group-item">
-                  <div class="btn-group btn-group-sm pull-right" role="group">
-                    <button type="button" class="btn btn-default" aria-label="hoch bewegen">
-                      <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-default" aria-label="runter bewegen">
-                      <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="btn btn-danger">ausblenden</button>
-                  </div>
-                  <h4 class="list-group-item-heading">
-                    Investieren
-                  </h4>
-                </li>
-              </ul>
+              <ul id="budget-settings-list" class="list-group list-group-sm"></ul>
             </div>
             <div role="tabpanel" class="tab-pane" id="settings-buy">
               <p>
@@ -364,13 +300,8 @@ limitations under the License.
               </p>
             </div>
           </div>
-
         </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Speichern</button>
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Abbrechen</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -535,41 +466,7 @@ limitations under the License.
       </button>
       <form id="income-dist-form" class="form-horizontal">
         <h1>Teile das Geld in diese Budgets auf:</h1>
-        <div class="form-group">
-          <label for="income-give" class="col-sm-2 control-label">
-            <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Zehntel:
-          </label>
-          <div class="col-sm-4 col-md-3">
-            <div class="input-group">
-              <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-give" placeholder="0,00 €">
-              <span id="income-give-percentage" class="input-group-addon onLogoffClearContent"></span>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="income-spend" class="col-sm-2 control-label">Ausgeben:</label>
-          <div class="col-sm-4 col-md-3">
-            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-spend" placeholder="0,00 €">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="income-contracts" class="col-sm-2 control-label">Verträge:</label>
-          <div class="col-sm-4 col-md-3">
-            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-contracts" placeholder="0,00 €">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="income-save" class="col-sm-2 control-label">Sparen:</label>
-          <div class="col-sm-4 col-md-3">
-            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-save" placeholder="0,00 €">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="income-invest" class="col-sm-2 control-label">Investieren:</label>
-          <div class="col-sm-4 col-md-3">
-            <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-invest" placeholder="0,00 €">
-          </div>
-        </div>
+        <div id="budget-inputs"></div>
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10">
             <div><span id="income-sum-text" class="onLogoffClearContent"></span><span> sind noch übrig.</span></div>
@@ -581,418 +478,101 @@ limitations under the License.
 
     <div role="tabpanel" class="voffset3">
       <!-- Nav tabs -->
-      <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="active">
-          <a id="give-tab" href="#give-panel" aria-controls="give-panel" role="tab" data-toggle="tab">
-            <span class="glyphicon glyphicon-heart text-danger" aria-hidden="true"></span> Zehntel
-            <span class="visible-xs-inline visible-sm-block visible-md-inline visible-lg-inline badge-wrapper">
-              <span class="badge give-transactions-sum onLogoffClearContent onEmptyHide"></span>
-            </span>
-          </a>
-        </li>
-        <li role="presentation">
-          <a id="spend-tab" href="#spend-panel" aria-controls="spend-panel" role="tab" data-toggle="tab">Ausgeben
-            <span class="visible-xs-inline visible-sm-block visible-md-inline visible-lg-inline badge-wrapper">
-              <span class="badge spend-transactions-sum onLogoffClearContent onEmptyHide"></span>
-            </span>
-          </a>
-        </li>
-        <li role="presentation">
-          <a id="contracts-tab" href="#contracts-panel" aria-controls="contracts-panel" role="tab" data-toggle="tab">Verträge
-            <span class="visible-xs-inline visible-sm-block visible-md-inline visible-lg-inline badge-wrapper">
-              <span class="badge contracts-transactions-sum onLogoffClearContent onEmptyHide"></span>
-            </span>
-          </a>
-        </li>
-        <li role="presentation">
-          <a id="save-tab" href="#save-panel" aria-controls="save-panel" role="tab" data-toggle="tab">Sparen
-            <span class="visible-xs-inline visible-sm-block visible-md-inline visible-lg-inline badge-wrapper">
-              <span class="badge save-transactions-sum onLogoffClearContent onEmptyHide"></span>
-            </span>
-          </a>
-        </li>
-        <li role="presentation">
-          <a id="invest-tab" href="#invest-panel" aria-controls="invest-panel" role="tab" data-toggle="tab">Investieren
-            <span class="visible-xs-inline visible-sm-block visible-md-inline visible-lg-inline badge-wrapper">
-              <span class="badge invest-transactions-sum onLogoffClearContent onEmptyHide"></span>
-            </span>
-          </a>
-        </li>
-      </ul>
+      <ul id="budget-tabs" class="nav nav-tabs nav-justified" role="tablist"></ul>
       <!-- Tab panes -->
-      <div class="tab-content">
-
-        <!-- PANEL GIVE -->
-        <form role="tabpanel" class="tab-pane active panel panel-default form-inline" id="give-panel">
-          <div class="panel-body">
-            <h1>
-              <span class="onEmptyShow">Dein Budget</span>
-              <span class="give-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              zum Welt-Verändern
-            </h1>
-            <p>
-              Wo unsere Schätze sind, da wird auch unser Herz sein.
-              Wofür schlägt dein Herz? Etwas abgeben, um anderen zu helfen, bedeutet effektiv die Welt zu verändern. <br>
-              Hier kannst du die Beträge sammeln, die du geben möchtest. Du entscheidest, was du wichtig findest. Du machst einen Unterschied.
-            </p>
-            <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich möchte pro Monat so viel geben:
-              <span id="give-memo-change" class="onLogoffShow">
-                <label class="sr-only" for="give-memo">Betrag (in Euro)</label>
-                <div class="input-group">
-                  <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-memo" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-              </span>
-              <span id="give-memo-show" class="hidden onLogoffHide">
-                <strong id="give-memo-show-amount" class="onLogoffClearContent"></strong>
-                <a href="#" id="give-memo-changeit">ändern</a>
-              </span>
-            </div>
-            <div class="alert alert-warning voffset3 onEmptyShow">
-              Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-              <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
-            </div>
-          </div>
-          <table class="transactions-table table table-striped onEmptyHide hidden">
-            <thead>
-              <tr>
-                <th class="th-date">Wann?</th>
-                <th class="th-subject">Woher? / Wofür?</th>
-                <th class="th-amount">Wieviel?</th>
-                <th class="th-button"></th>
-              </tr>
-            </thead>
-            <tbody id="give-transactions" class="onLogoffClearContent"></tbody>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="give-input-date">Wann?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="give-input-date">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="give-input-subject">Ausgaben aus diesem Budget hier eintragen</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="give-input-subject" placeholder="Ausgabe aus dem Zehntel-Budget hier eintragen">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="give-input-amount">Wieviel?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="give-input-amount" placeholder="0,00 €">
-                    </div>
-                  </div>
-                </td>
-                <td class="transaction-dropdown">
-                  <button type="submit" class="btn btn-success btn-sm">OK</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-
-        <!-- PANEL SPEND -->
-        <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="spend-panel">
-          <div class="panel-body">
-            <h1>
-              <span class="onEmptyShow">Dein Budget</span>
-              <span class="spend-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              zum Ausgeben
-            </h1>
-            <p>Für alles, was du dir zum Leben kaufst. Essen, Kinokarten, Waschmittel. Tipp: Wenn du nicht jeden Kaffee einzeln eintragen möchtest, tippe einfach jede Bargeldabhebung am Geldautomaten hier ein. Oder regelmäßig deine Kontoauszüge.</p>
-            <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich brauche pro Monat zum Ausgeben ungefähr:
-              <span id="spend-memo-change" class="onLogoffShow">
-                <label class="sr-only" for="spend-memo">Betrag (in Euro)</label>
-                <div class="input-group">
-                  <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-memo" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-              </span>
-              <span id="spend-memo-show" class="hidden onLogoffHide">
-                <strong id="spend-memo-show-amount" class="onLogoffClearContent"></strong>
-                <a href="#" id="spend-memo-changeit">ändern</a>
-              </span>
-            </div>
-            <div class="alert alert-warning voffset3 onEmptyShow">
-              Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-              <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
-            </div>
-          </div>
-          <table class="transactions-table table table-striped onEmptyHide hidden">
-            <thead>
-              <tr>
-                <th class="th-date">Wann?</th>
-                <th class="th-subject">Woher? / Wofür?</th>
-                <th class="th-amount">Wieviel?</th>
-                <th class="th-button"></th>
-              </tr>
-            </thead>
-            <tbody id="spend-transactions" class="onLogoffClearContent"></tbody>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="spend-input-date">Wann?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="spend-input-date">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="spend-input-subject">Ausgabe aus dem Ausgeben-Budget hier eintragen</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="spend-input-subject" placeholder="Ausgabe aus dem Ausgeben-Budget hier eintragen">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="spend-input-amount">Wieviel?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="spend-input-amount" placeholder="0,00 €">
-                    </div>
-                  </div>
-                </td>
-                <td class="transaction-dropdown">
-                  <button type="submit" class="btn btn-success btn-sm">OK</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-
-        <!-- PANEL CONTRACTS -->
-        <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="contracts-panel">
-          <div class="panel-body">
-            <h1>
-              <span class="onEmptyShow">Dein Budget</span>
-              <span class="contracts-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für Verträge
-            </h1>
-            <p>Für alle regelmäßigen Zahlungen: Miete, Handy, Internet, Gebühren. Tipp: Rechne jährliche oder halbjährliche Ausgaben auf einen Monat herunter und trage die Summe hier in das Memo an dich selbst ein. So hast du immer genug Puffer, auch für große Rechnungen, die nur einmal im Jahr kommen.</p>
-            <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich brauche pro Monat für regelmäßige Zahlungen ungefähr:
-              <span id="contracts-memo-change" class="onLogoffShow">
-                <label class="sr-only" for="contracts-memo">Betrag (in Euro)</label>
-                <div class="input-group">
-                  <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="contracts-memo" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-              </span>
-              <span id="contracts-memo-show" class="hidden onLogoffHide">
-                <strong id="contracts-memo-show-amount" class="onLogoffClearContent"></strong>
-                <a href="#" id="contracts-memo-changeit">ändern</a>
-              </span>
-            </div>
-            <div class="alert alert-warning voffset3 onEmptyShow">
-              Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-              <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
-            </div>
-          </div>
-          <table class="transactions-table table table-striped onEmptyHide hidden">
-            <thead>
-              <tr>
-                <th class="th-date">Wann?</th>
-                <th class="th-subject">Woher? / Wofür?</th>
-                <th class="th-amount">Wieviel?</th>
-                <th class="th-button"></th>
-              </tr>
-            </thead>
-            <tbody id="contracts-transactions" class="onLogoffClearContent"></tbody>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="contracts-input-date">Wann?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="contracts-input-date">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="contracts-input-subject">Ausgabe aus dem Verträge-Budget hier eintragen</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="contracts-input-subject" placeholder="Ausgabe aus dem Verträge-Budget hier eintragen">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="contracts-input-amount">Wieviel?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="contracts-input-amount" placeholder="0,00 €">
-                    </div>
-                  </div>
-                </td>
-                <td class="transaction-dropdown">
-                  <button type="submit" class="btn btn-success btn-sm">OK</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-
-        <!-- PANEL SAVE -->
-        <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="save-panel">
-          <div class="panel-body">
-            <h1>
-              <span class="onEmptyShow">Dein Budget</span>
-              <span class="save-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für die Wunschfee
-            </h1>
-            <p>Drei Wünsche frei? Mach es zur Realität. Hier kannst du die Beträge sammeln, die du sparen möchtest, um deinem Traum immer näher zu kommen. Und dann: Gönn dir!</p>
-            <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich möchte jeden Monat so viel zurücklegen:
-              <span id="save-memo-change" class="onLogoffShow">
-                <label class="sr-only" for="save-memo">Betrag (in Euro)</label>
-                <div class="input-group">
-                  <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="save-memo" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-              </span>
-              <span id="save-memo-show" class="hidden onLogoffHide">
-                <strong id="save-memo-show-amount" class="onLogoffClearContent"></strong>
-                <a href="#" id="save-memo-changeit">ändern</a>
-              </span>
-            </div>
-            <div class="alert alert-warning voffset3 onEmptyShow">
-              Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-              <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
-            </div>
-          </div>
-          <table class="transactions-table table table-striped onEmptyHide hidden">
-            <thead>
-              <tr>
-                <th class="th-date">Wann?</th>
-                <th class="th-subject">Woher? / Wofür?</th>
-                <th class="th-amount">Wieviel?</th>
-                <th class="th-button"></th>
-              </tr>
-            </thead>
-            <tbody id="save-transactions" class="onLogoffClearContent"></tbody>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="save-input-date">Wann?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="save-input-date">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="save-input-subject">Ausgabe aus dem Sparen-Budget hier eintragen</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="save-input-subject" placeholder="Ausgabe aus dem Sparen-Budget hier eintragen">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="save-input-amount">Wieviel?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="save-input-amount" placeholder="0,00 €">
-                    </div>
-                  </div>
-                </td>
-                <td class="transaction-dropdown">
-                  <button type="submit" class="btn btn-success btn-sm">OK</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-
-        <!-- PANEL INVEST -->
-        <form role="tabpanel" class="tab-pane panel panel-default form-inline" id="invest-panel">
-          <div class="panel-body">
-            <h1>
-              <span class="onEmptyShow">Dein Budget</span>
-              <span class="invest-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-              für Investitionen
-            </h1>
-            <p>Investieren bedeutet: Geld so einsetzen, dass am Ende mehr daraus wird. Du kannst zum Beispiel in deine Bildung investieren. Oder in eine Altersvorsorge. Oder in ein Projekt, an dem du beteiligt bist. Hier kannst du die Beträge verwalten, die du dafür brauchst.</p>
-            <div class="form-group onEmptyHide hidden">
-              Memo an mich selbst: Ich möchte pro Monat so viel investieren:
-              <span id="invest-memo-change" class="onLogoffShow">
-                <label class="sr-only" for="invest-memo">Betrag (in Euro)</label>
-                <div class="input-group">
-                  <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-memo" placeholder="0,00 €">
-                </div>
-                <button type="submit" class="btn btn-success btn-sm">Speichern</button>
-              </span>
-              <span id="invest-memo-show" class="hidden onLogoffHide">
-                <strong id="invest-memo-show-amount" class="onLogoffClearContent"></strong>
-                <a href="#" id="invest-memo-changeit">ändern</a>
-              </span>
-            </div>
-            <div class="alert alert-warning voffset3 onEmptyShow">
-              Dieses Budget ist noch leer. Trage oben eine aktuelle Einnahme ein um zu starten!
-              <span class="onLogoffShow onLoginHide">Oder <a href="#" class="alert-link" data-toggle="modal" data-target="#loginModal">melde dich jetzt an.</a></span>
-            </div>
-          </div>
-          <table class="transactions-table table table-striped onEmptyHide hidden">
-            <thead>
-              <tr>
-                <th class="th-date">Wann?</th>
-                <th class="th-subject">Woher? / Wofür?</th>
-                <th class="th-amount">Wieviel?</th>
-                <th class="th-button"></th>
-              </tr>
-            </thead>
-            <tbody id="invest-transactions" class="onLogoffClearContent"></tbody>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="invest-input-date">Wann?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal insertToday" id="invest-input-date">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="invest-input-subject">Ausgabe aus dem Investieren-Budget hier eintragen</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal" id="invest-input-subject" placeholder="Ausgabe aus dem Investieren-Budget hier eintragen">
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="form-group">
-                    <label class="sr-only" for="invest-input-amount">Wieviel?</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control input-sm onLogoffClearVal autonumeric" id="invest-input-amount" placeholder="0,00 €">
-                    </div>
-                  </div>
-                </td>
-                <td class="transaction-dropdown">
-                  <button type="submit" class="btn btn-success btn-sm">OK</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-
-      </div>
+      <div id="budget-panes" class="tab-content"></div>
     </div>
     <div class="alert alert-success alert-dismissible" role="alert">
       <button type="button" class="close" data-dismiss="alert" aria-label="Ausblenden" style="opacity: 0.8; font-size: 180%;"><span aria-hidden="true" >&times;</span></button>
       Programmiert mit <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> und <span class="glyphicon glyphicon-fire" aria-hidden="true"></span> von Jan Pawellek <span class="onLoginShow onLogoffHide hidden">für <span class="hoodieUsername onLogoffClearContent"></span></span><span class="onLoginHide onLogoffShow hidden">für dich</span>. Ich hoffe, Zehntel.org ist nützlich für dich. Was gefällt dir? Was fehlt noch? Schreib mir an <a href="mailto:jan@zehntel.org">jan@zehntel.org</a> oder an Jan Pawellek, Gerhart-Hauptmann-Str. 10, 69221 Dossenheim. Ich freue mich auf Post von dir.
     </div>
   </div>
+
+  <!-- HANDLEBAR TEMPLATES -->
+  <script id="template-budget-settings" type="text/x-handlebars-template">
+    include "hbs/budget-settings.hbs"
+  </script>
+  <script id="template-budget-input" type="text/x-handlebars-template">
+    include "hbs/budget-input.hbs"
+  </script>
+  <script id="template-budget-tab" type="text/x-handlebars-template">
+    include "hbs/budget-tab.hbs"
+  </script>
+  <script id="template-budget-pane" type="text/x-handlebars-template">
+    include "hbs/budget-pane.hbs"
+  </script>
+  <script id="template-give-name" type="text/x-handlebars-template">
+    Zehntel
+  </script>
+  <script id="template-give-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/give-description.hbs"
+  </script>
+  <script id="template-give-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/give-memo.hbs"
+  </script>
+  <script id="template-give-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/give-title.hbs"
+  </script>
+  <script id="template-spend-name" type="text/x-handlebars-template">
+    Ausgeben
+  </script>
+  <script id="template-spend-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/spend-description.hbs"
+  </script>
+  <script id="template-spend-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/spend-memo.hbs"
+  </script>
+  <script id="template-spend-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/spend-title.hbs"
+  </script>
+  <script id="template-contracts-name" type="text/x-handlebars-template">
+    Verträge
+  </script>
+  <script id="template-contracts-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/contracts-description.hbs"
+  </script>
+  <script id="template-contracts-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/contracts-memo.hbs"
+  </script>
+  <script id="template-contracts-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/contracts-title.hbs"
+  </script>
+  <script id="template-save-name" type="text/x-handlebars-template">
+    Sparen
+  </script>
+  <script id="template-save-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/save-description.hbs"
+  </script>
+  <script id="template-save-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/save-memo.hbs"
+  </script>
+  <script id="template-save-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/save-title.hbs"
+  </script>
+  <script id="template-invest-name" type="text/x-handlebars-template">
+    Investieren
+  </script>
+  <script id="template-invest-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/invest-description.hbs"
+  </script>
+  <script id="template-invest-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/invest-memo.hbs"
+  </script>
+  <script id="template-invest-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/invest-title.hbs"
+  </script>
+  <script id="template-default-name" type="text/x-handlebars-template">
+    Budget ohne Namen
+  </script>
+  <script id="template-default-description" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/default-description.hbs"
+  </script>
+  <script id="template-default-memo" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/default-memo.hbs"
+  </script>
+  <script id="template-default-title" type="text/x-handlebars-template">
+    include "hbs/budget-pane-texts/default-title.hbs"
+  </script>
 
   <script src="lib/bower.js"></script>
   <script src="/_api/_files/hoodie.js"></script>

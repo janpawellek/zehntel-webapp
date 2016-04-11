@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*global window,$,moment,Hoodie,sjcl*/
+/*global window,$,moment,Hoodie,sjcl,Handlebars*/
 (function () {
   'use strict'
   var hoodie
   var Encryption
   var Budget
+  var BudgetManager
   var Transactions
   var dataToBeMoved = []
 
@@ -969,7 +970,270 @@ limitations under the License.
         inputAmount.val('')
       }
     })
+
+    this.getId = function () {
+      return basename
+    }
   }
+
+  // BUDGET MANAGER ---------------------------------------------------------
+  BudgetManager = (function () {
+    var initialized = false
+    var standardBudgets = ['give', 'spend', 'contracts', 'save', 'invest']
+    var budgets = []
+
+    // Hides a budget from being displayed.
+    // Does not persist the hide action, only alters the page.
+    var hideBudget = function (budgetid) {
+      // clear the income input fields
+      $('#income-' + budgetid).val('')
+
+      // hide all occurrences
+      $('#budget-input-' + budgetid).addClass('hidden')
+      $('#' + budgetid + '-panel').addClass('hidden')
+      $('#budget-settings-list-item-' + budgetid + ' .budget-hide-button').addClass('hidden')
+      $('#budget-settings-list-item-' + budgetid + ' .budget-show-button').removeClass('hidden')
+      $('#' + budgetid + '-tab-li').addClass('hidden')
+
+      // make another budget active if the budget to be hidden is active
+      if ($('#' + budgetid + '-panel').hasClass('active')) {
+        $('#' + budgetid + '-panel').removeClass('active')
+        $('#' + budgetid + '-tab-li').removeClass('active')
+        $('#budget-tabs > li').not('.hidden').first().addClass('active')
+        $('#budget-panes > .panel').not('.hidden').first().addClass('active')
+      }
+    }
+
+    // Shows a previously hidden budget.
+    // Does not persist the show action, only alters the page.
+    var showBudget = function (budgetid) {
+      // hide all occurrences
+      $('#budget-input-' + budgetid).removeClass('hidden')
+      $('#' + budgetid + '-panel').removeClass('hidden')
+      $('#budget-settings-list-item-' + budgetid + ' .budget-hide-button').removeClass('hidden')
+      $('#budget-settings-list-item-' + budgetid + ' .budget-show-button').addClass('hidden')
+      $('#' + budgetid + '-tab-li').removeClass('hidden')
+    }
+
+    // Arranges the order of all budgets according to their position property.
+    var arrangeBudgets = function () {
+      var budgetids = []
+      budgets.forEach(function (budget) {
+        budgetids.push(budget.getId())
+      })
+
+      var budgetitems = []
+      hoodie.store.findAll('budgetmeta')
+      .then(function (allItems) {
+        budgetitems = allItems
+      })
+
+      budgetids.sort(function (a, b) {
+        var aPos = standardBudgets.indexOf(a) === -1 ? 1000 : standardBudgets.indexOf(a)
+        var bPos = standardBudgets.indexOf(b) === -1 ? 1000 : standardBudgets.indexOf(b)
+        budgetitems.forEach(function (budgetitem) {
+          if (budgetitem.position === undefined) {
+            return
+          }
+          if (budgetitem.id === a) {
+            aPos = budgetitem.position
+          }
+          if (budgetitem.id === b) {
+            bPos = budgetitem.position
+          }
+        })
+        return aPos - bPos
+      })
+
+      // Now arrange in HTML DOM
+      budgetids.forEach(function (budgetid) {
+        $('#' + budgetid + '-tab-li').detach().appendTo('#budget-tabs')
+        $('#budget-input-' + budgetid).detach().appendTo('#budget-inputs')
+        $('#budget-settings-list-item-' + budgetid).detach().appendTo('#budget-settings-list')
+      })
+    }
+
+    // Saves the arrangement of budgets as it is in the budget-settings-list
+    var saveArrangement = function () {
+      var order = []
+      $('#budget-settings-list').children().each(function () {
+        order.push($(this)[0].id.replace('budget-settings-list-item-', ''))
+      })
+      order.forEach(function (budgetid, index) {
+        hoodie.store.findOrAdd('budgetmeta', budgetid, {}, {silent: true})
+        .then(function (item) {
+          item.position = index + 1
+          return hoodie.store.update('budgetmeta', budgetid, item, {silent: index + 1 !== order.length})
+        })
+        .catch(function (error) {
+          showHoodieError(error)
+        })
+      })
+    }
+
+    var createBudget = function (budgetitem) {
+      var nameTemplate
+      var descriptionTemplate
+      var memoTemplate
+      var titleTemplate
+      var inputTemplate
+      var paneTemplate
+      var settingsTemplate
+      var tabTemplate
+      var context = {
+        'budget-id': budgetitem.id,
+        'budget-name': budgetitem.name,
+        'budget-first-tab': (budgets.length === 0 ? 'active' : ''),
+        'budget-heart': budgetitem.id === 'give'
+      }
+
+      // 1. Compile templates
+      if (!budgetitem.name) {
+        if ($('#template-' + budgetitem.id + '-name').length === 0) {
+          nameTemplate = Handlebars.compile($('#template-default-name').html())
+        } else {
+          nameTemplate = Handlebars.compile($('#template-' + budgetitem.id + '-name').html())
+        }
+        context['budget-name'] = nameTemplate(context).trim()
+      }
+
+      if ($('#template-' + budgetitem.id + '-description').length === 0) {
+        descriptionTemplate = Handlebars.compile($('#template-default-description').html())
+      } else {
+        descriptionTemplate = Handlebars.compile($('#template-' + budgetitem.id + '-description').html())
+      }
+      context['budget-description'] = descriptionTemplate(context)
+
+      if ($('#template-' + budgetitem.id + '-memo').length === 0) {
+        memoTemplate = Handlebars.compile($('#template-default-memo').html())
+      } else {
+        memoTemplate = Handlebars.compile($('#template-' + budgetitem.id + '-memo').html())
+      }
+      context['budget-memo'] = memoTemplate(context)
+
+      if ($('#template-' + budgetitem.id + '-title').length === 0) {
+        titleTemplate = Handlebars.compile($('#template-default-title').html())
+      } else {
+        titleTemplate = Handlebars.compile($('#template-' + budgetitem.id + '-title').html())
+      }
+      context['budget-title'] = titleTemplate(context)
+
+      inputTemplate = Handlebars.compile($('#template-budget-input').html())
+      paneTemplate = Handlebars.compile($('#template-budget-pane').html())
+      settingsTemplate = Handlebars.compile($('#template-budget-settings').html())
+      tabTemplate = Handlebars.compile($('#template-budget-tab').html())
+
+      // 2. Add templates to HTML
+      $('#budget-inputs').append(inputTemplate(context))
+      $('#budget-panes').append(paneTemplate(context))
+      $('#budget-settings-list').append(settingsTemplate(context))
+      $('#budget-tabs').append(tabTemplate(context))
+
+      // 3. Run template specific initializations (autoNumeric, event handler)
+      $('#' + budgetitem.id + '-panel .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+      $('#budget-input-' + budgetitem.id + ' .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+
+      $('#budget-settings-list-item-' + budgetitem.id + ' .budget-hide-button').click(function () {
+        // prevent from hiding the last budget
+        if ($('#budget-tabs > li').not('.hidden').length === 1) {
+          return
+        }
+        // persist the hide change
+        hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        .then(function (item) {
+          item.hidden = true
+          return hoodie.store.update('budgetmeta', budgetitem.id, item)
+        })
+        .catch(function (error) {
+          showHoodieError(error)
+        })
+      })
+      $('#budget-settings-list-item-' + budgetitem.id + ' .budget-show-button').click(function () {
+        // persist the show change
+        hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        .then(function (item) {
+          item.hidden = false
+          return hoodie.store.update('budgetmeta', budgetitem.id, item)
+        })
+        .catch(function (error) {
+          showHoodieError(error)
+        })
+      })
+      $('#budget-settings-list-item-' + budgetitem.id + ' .budget-up-button').click(function () {
+        var item = $(this).closest('.list-group-item')
+        item.prev('.list-group-item').before(item)
+        saveArrangement()
+      })
+      $('#budget-settings-list-item-' + budgetitem.id + ' .budget-down-button').click(function () {
+        var item = $(this).closest('.list-group-item')
+        item.next('.list-group-item').after(item)
+        saveArrangement()
+      })
+
+      // 4. Create Budget object
+      budgets.push(new Budget(budgetitem.id))
+
+      // 5. Hide if necessary and arrange
+      if (budgetitem.hidden) {
+        hideBudget(budgetitem.id)
+      }
+      arrangeBudgets()
+    }
+
+    return {
+      init: function () {
+        if (initialized) {
+          return
+        }
+
+        // Create standard budgets
+        standardBudgets.forEach(function (budgetid) {
+          createBudget({id: budgetid})
+        })
+
+        // Register event handler for budgetmeta items
+        hoodie.store.on('budgetmeta:change', function (eventName, changedItem) {
+          if (eventName === 'remove') {
+            //TODO Remove budget
+          } else {
+            // Add or update budget
+            if (budgets.map(function (budget) { return budget.getId() }).indexOf(changedItem.id) === -1) {
+              createBudget(changedItem)
+            } else {
+              // Update budget
+              if (changedItem.hidden && !$('#budget-input-' + changedItem.id).hasClass('hidden')) {
+                hideBudget(changedItem.id)
+              }
+              if (!changedItem.hidden && $('#budget-input-' + changedItem.id).hasClass('hidden')) {
+                showBudget(changedItem.id)
+              }
+              arrangeBudgets()
+            }
+          }
+        })
+        hoodie.store.on('clear', function () {
+          //TODO Remove any custom budget. Also unregister Budget's event handlers! (in the Budget object)
+          // Restore standard budgets
+          standardBudgets.forEach(function (budgetid) {
+            if ($('#budget-input-' + budgetid).hasClass('hidden')) {
+              showBudget(budgetid)
+            }
+          })
+          arrangeBudgets()
+        })
+
+        initialized = true
+      },
+
+      getBudgetIds: function () {
+        var budgetids = []
+        budgets.forEach(function (budget) {
+          budgetids.push(budget.getId())
+        })
+        return budgetids
+      }
+    }
+  })()
 
   // ACCOUNT FUNCTIONALITY (LOGIN/LOGOUT) -----------------------------------
   function setLoggedIn (state) {
@@ -1401,9 +1665,6 @@ limitations under the License.
   // MAIN FUNCTION --------------------------------
   // execute when DOM is ready
   $(function () {
-    var updateIncomeSum
-    var budgets
-
     // enable tooltips
     $('[data-toggle="tooltip"]').tooltip()
 
@@ -1453,17 +1714,18 @@ limitations under the License.
     // INCOME INPUT -----------------------------
 
     // helper function to update the percentage and the remaining amount of income
-    updateIncomeSum = function () {
-      var strAmount = $('#income-amount').autoNumeric('get')
-      var strSpend = $('#income-spend').autoNumeric('get')
-      var strContracts = $('#income-contracts').autoNumeric('get')
-      var strSave = $('#income-save').autoNumeric('get')
-      var strInvest = $('#income-invest').autoNumeric('get')
-      var strGive = $('#income-give').autoNumeric('get')
-      var remainingSum
-      var givePercentage
+    var updateIncomeSum = function () {
+      var budgetids = BudgetManager.getBudgetIds()
+      var amount = $('#income-amount').autoNumeric('get')
+      var remainingSum = amount
 
-      remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive
+      budgetids.forEach(function (budgetid) {
+        var budgetamount = $('#income-' + budgetid).autoNumeric('get')
+        var percentage = (100 * budgetamount / amount).toFixed(0)
+        $('#income-' + budgetid + '-percentage').text(percentage + ' %')
+        remainingSum -= budgetamount
+      })
+
       $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
       $('#income-sum-text').autoNumeric('set', escapeHtml(remainingSum))
       if (remainingSum < -0.001) {
@@ -1471,9 +1733,6 @@ limitations under the License.
       } else {
         $('#income-sum-text').removeClass('negative-sum')
       }
-
-      givePercentage = (100 * strGive / strAmount).toFixed(0)
-      $('#income-give-percentage').text(givePercentage + ' %')
     }
 
     // on submit of new income open distribution form
@@ -1498,28 +1757,32 @@ limitations under the License.
           // fetch the ID of the latest item with this amount
           var lastid = sameAmountItems.sort(function (a, b) {
             return b.createdAt - a.createdAt
-          })[0].id;
+          })[0].id
 
           // set all budget fields
-          ['spend', 'contracts', 'save', 'invest', 'give'].forEach(function (budgetname) {
-            hoodie.store.findAll(function (object) {
-              if ((object.type) !== (budgetname + 'item')) {
-                return false
-              }
-              var decrypted = Encryption.decryptIfSignedIn(object)
-              return decrypted && decrypted.income === lastid
-            })
-            .then(function (items) {
-              if (items.length > 0) {
-                $('#income-' + budgetname).autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
-                updateIncomeSum()
-              }
-            })
+          BudgetManager.getBudgetIds().forEach(function (budgetid) {
+            if (!$('#budget-input-' + budgetid).hasClass('hidden')) {
+              hoodie.store.findAll(function (object) {
+                if ((object.type) !== (budgetid + 'item')) {
+                  return false
+                }
+                var decrypted = Encryption.decryptIfSignedIn(object)
+                return decrypted && decrypted.income === lastid
+              })
+              .then(function (items) {
+                if (items.length > 0) {
+                  $('#income-' + budgetid).autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
+                  updateIncomeSum()
+                }
+              })
+            }
           })
         } else {
           // calculate 10%
-          $('#income-give').autoNumeric('set', $('#income-amount').autoNumeric('get') * 0.1)
-          updateIncomeSum()
+          if (!$('#budget-input-give').hasClass('hidden')) {
+            $('#income-give').autoNumeric('set', $('#income-amount').autoNumeric('get') * 0.1)
+            updateIncomeSum()
+          }
         }
       })
     })
@@ -1530,8 +1793,8 @@ limitations under the License.
     })
 
     // update income sum if any field gets changed
-    $('.onChangeUpdateIncomeSum').change(updateIncomeSum)
-    $('.onChangeUpdateIncomeSum').keypress(updateIncomeSum)
+    $('#budget-inputs').on('change', '.onChangeUpdateIncomeSum', updateIncomeSum)
+    $('#budget-inputs').on('keyup', '.onChangeUpdateIncomeSum', updateIncomeSum)
 
     $('#income-dist-form').on('submit', function (event) {
       event.preventDefault()
@@ -1543,13 +1806,13 @@ limitations under the License.
       var strDate
       var strSubject = $('#income-subject').val()
       var strAmount = $('#income-amount').autoNumeric('get')
-      var strSpend = $('#income-spend').autoNumeric('get')
-      var strContracts = $('#income-contracts').autoNumeric('get')
-      var strSave = $('#income-save').autoNumeric('get')
-      var strInvest = $('#income-invest').autoNumeric('get')
-      var strGive = $('#income-give').autoNumeric('get')
+      var budgetids = BudgetManager.getBudgetIds()
       var incomeId = -1
-      var remainingSum = strAmount - strSpend - strContracts - strSave - strInvest - strGive
+      var remainingSum = strAmount
+
+      budgetids.forEach(function (budgetid) {
+        remainingSum -= $('#income-' + budgetid).autoNumeric('get')
+      })
 
       valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD'], true)
       if (!valDate.isValid()) {
@@ -1569,17 +1832,24 @@ limitations under the License.
       }
 
       if (remainingSum > 0.001) {
-        dialogModal('Da ist noch etwas übrig',
-          'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag zum Zehntel hinzufügen?',
-          'Ja zum Zehntel addieren',
-          'Nein nochmal nachdenken',
-          function () {
-            $('#income-give').autoNumeric('set', remainingSum + (strGive > 0.001 ? parseFloat(strGive) : 0))
-            updateIncomeSum()
-          },
-          function () { updateIncomeSum() },
-          true)
-        $('#remaining-dialog-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+        if ($('#budget-input-give').hasClass('hidden')) {
+          messageModal('Bitte nochmal prüfen',
+            'Du hast noch Geld übrig, das du verteilen kannst.',
+            'OK')
+        } else {
+          dialogModal('Da ist noch etwas übrig',
+            'Du hast noch <b id="remaining-dialog-amount">' + remainingSum + '</b> übrig, die du verteilen kannst. Möchtest du diesen Betrag zum Zehntel hinzufügen?',
+            'Ja zum Zehntel addieren',
+            'Nein nochmal nachdenken',
+            function () {
+              var strGive = $('#income-give').autoNumeric('get')
+              $('#income-give').autoNumeric('set', remainingSum + (strGive > 0.001 ? parseFloat(strGive) : 0))
+              updateIncomeSum()
+            },
+            function () { updateIncomeSum() },
+            true)
+          $('#remaining-dialog-amount').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+        }
         return
       }
 
@@ -1592,62 +1862,21 @@ limitations under the License.
       .then(function (income) {
         incomeId = income.id
 
-        if (strSpend > 0) {
-          hoodie.store.add('spenditem', Encryption.encryptIfSignedIn({
-            date: strDate,
-            subject: strSubject,
-            amount: strSpend,
-            income: incomeId
-          }))
-          .catch(function (error) {
-            showHoodieError(error.message)
-          })
-        }
-        if (strContracts > 0) {
-          hoodie.store.add('contractsitem', Encryption.encryptIfSignedIn({
-            date: strDate,
-            subject: strSubject,
-            amount: strContracts,
-            income: incomeId
-          }))
-          .catch(function (error) {
-            showHoodieError(error.message)
-          })
-        }
-        if (strSave > 0) {
-          hoodie.store.add('saveitem', Encryption.encryptIfSignedIn({
-            date: strDate,
-            subject: strSubject,
-            amount: strSave,
-            income: incomeId
-          }))
-          .catch(function (error) {
-            showHoodieError(error.message)
-          })
-        }
-        if (strInvest > 0) {
-          hoodie.store.add('investitem', Encryption.encryptIfSignedIn({
-            date: strDate,
-            subject: strSubject,
-            amount: strInvest,
-            income: incomeId
-          }))
-          .catch(function (error) {
-            showHoodieError(error.message)
-          })
-        }
-        if (strGive > 0) {
-          hoodie.store.add('giveitem', Encryption.encryptIfSignedIn({
-            date: strDate,
-            subject: strSubject,
-            amount: strGive,
-            income: incomeId
-          }))
-          .catch(function (error) {
-            showHoodieError(error.message)
-          })
-        }
-
+        return Promise.all(budgetids.map(function (budgetid) {
+          var budgetamount = $('#income-' + budgetid).autoNumeric('get')
+          if (budgetamount > 0) {
+            return hoodie.store.add(budgetid + 'item', Encryption.encryptIfSignedIn({
+              date: strDate,
+              subject: strSubject,
+              amount: budgetamount,
+              income: incomeId
+            }))
+          } else {
+            return Promise.resolve()
+          }
+        }))
+      })
+      .then(function () {
         // success! reset input fields
         $('.income-input').val('')
         $('#income-date').val(moment().format('DD.MM.YYYY'))
@@ -1663,13 +1892,8 @@ limitations under the License.
       })
     })
 
-    // create budgets
-    budgets = []
-    budgets.push(new Budget('spend'))
-    budgets.push(new Budget('contracts'))
-    budgets.push(new Budget('save'))
-    budgets.push(new Budget('invest'))
-    budgets.push(new Budget('give'))
+    // Init the BudgetManager
+    BudgetManager.init()
 
     // set initial state to logged off (since we need authentication to decrypt)
     setLoggedIn(false)

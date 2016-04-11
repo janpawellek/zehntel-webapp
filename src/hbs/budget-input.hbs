@@ -1,0 +1,12 @@
+<div id="budget-input-{{budget-id}}" class="form-group">
+  <label for="income-{{budget-id}}" class="col-sm-2 control-label">
+    {{#if budget-heart}}<span class="glyphicon glyphicon-heart" aria-hidden="true"></span>{{/if}}
+    {{budget-name}}:
+  </label>
+  <div class="col-sm-4 col-md-3">
+    <div class="input-group">
+      <input type="text" class="form-control onLogoffClearVal onChangeUpdateIncomeSum autonumeric income-input" data-v-min="0" id="income-{{budget-id}}" placeholder="0,00 €">
+      <span id="income-{{budget-id}}-percentage" class="input-group-addon onLogoffClearContent"></span>
+    </div>
+  </div>
+</div>
