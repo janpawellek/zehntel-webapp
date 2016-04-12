@@ -1683,6 +1683,14 @@ limitations under the License.
       $('#settingsModal #settings-buy').addClass('active')
     })
 
+    // enable the budget settings link to switch to the correct tab
+    $('.showBudgetTab').click(function () {
+      $('#settingsModal .nav-tabs .active').removeClass('active')
+      $('#settingsModal .nav-tabs #nav-tab-settings-budget').addClass('active')
+      $('#settingsModal .tab-pane.active').removeClass('active')
+      $('#settingsModal #settings-budgets').addClass('active')
+    })
+
     // show additional fields when the user wants to signUP or recover
     $('input[type=radio][name=loginSignupOption]').change(function () {
       if (this.value === 'signin') {

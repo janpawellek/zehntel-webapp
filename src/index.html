@@ -186,7 +186,7 @@ limitations under the License.
         <div class="modal-body">
           <!-- Settings tabs -->
           <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="active onLogoffSetActive"><a href="#settings-budgets" aria-controls="settings-budgets" role="tab" data-toggle="tab">Budgets</a></li>
+            <li role="presentation" class="active onLogoffSetActive" id="nav-tab-settings-budget"><a href="#settings-budgets" aria-controls="settings-budgets" role="tab" data-toggle="tab">Budgets</a></li>
             <li role="presentation" class="onLoginShow onLogoffHide onLogoffRemoveActive hidden"><a href="#settings-data" aria-controls="settings-data" role="tab" data-toggle="tab">Deine Daten</a></li>
             <li role="presentation" class="onLoginShow onLogoffHide onLogoffRemoveActive hidden" id="nav-tab-settings-buy"><a href="#settings-buy" aria-controls="settings-buy" role="tab" data-toggle="tab">Jahresbeitrag</a></li>
           </ul>
@@ -443,8 +443,8 @@ limitations under the License.
         </div>
         <div class="col-md-2">
           <div class="form-group">
-            <label class="sr-only" for="income-subject">Woher?</label>
-            <input type="text" class="form-control onLogoffClearVal income-input" id="income-subject" placeholder="Woher?">
+            <label class="sr-only" for="income-subject">Einnahme woher?</label>
+            <input type="text" class="form-control onLogoffClearVal income-input" id="income-subject" placeholder="Einnahme woher?">
           </div>
         </div>
         <div class="col-md-2">
@@ -465,7 +465,10 @@ limitations under the License.
         <span aria-hidden="true">&times;</span>
       </button>
       <form id="income-dist-form" class="form-horizontal">
-        <h1>Teile das Geld in diese Budgets auf:</h1>
+        <h1>
+          Teile das Geld in deine Budgets auf.
+          <span class="small">(In den <a href="#" class="alert-link showBudgetTab" data-toggle="modal" data-target="#settingsModal">Einstellungen</a> kannst du die Budgets ändern.)</span>
+        </h1>
         <div id="budget-inputs"></div>
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10">
