@@ -1,4 +1,4 @@
-<form role="tabpanel" class="tab-pane {{budget-first-tab}} panel panel-default form-inline" id="{{budget-id}}-panel">
+<form role="tabpanel" class="tab-pane {{budget-first-tab}} {{#if budget-heart}}onLogoffSetActive{{else}}onLogoffRemoveActive{{/if}} panel panel-default form-inline" id="{{budget-id}}-panel">
   <div class="panel-body">
     <h1>
       <span class="onEmptyShow">Dein Budget</span>

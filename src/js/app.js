@@ -1312,6 +1312,10 @@ limitations under the License.
       $('.onLogoffClearContent').html('')
       $('.onLogoffClearVal').val('')
 
+      // reset active tabs
+      $('.onLogoffRemoveActive').removeClass('active')
+      $('.onLogoffSetActive').addClass('active')
+
       // insert today's date as default
       $('.insertToday').val(moment().format('DD.MM.YYYY'))
     }

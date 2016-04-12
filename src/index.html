@@ -59,8 +59,8 @@ limitations under the License.
             <p class="navbar-text onLoginShow onLogoffHide hidden" id="userText">
               Hi <span class="hoodieUsername onLogoffClearContent"></span>!
             </p>
+            <button type="button" id="settingsButton" class="btn btn-default navbar-btn" data-toggle="modal" data-target="#settingsModal">Einstellungen</button>
             <button type="button" id="loginButton" class="btn btn-default navbar-btn onLoginHide onLogoffShow" data-toggle="modal" data-target="#loginModal">Anmelden</button>
-            <button type="button" id="settingsButton" class="btn btn-default navbar-btn onLoginShow onLogoffHide hidden" data-toggle="modal" data-target="#settingsModal">Einstellungen</button>
             <button type="button" id="logoutButton" class="btn btn-default navbar-btn onLoginShow onLogoffHide hidden">Abmelden</button>
           </div>
         </div>
@@ -186,14 +186,21 @@ limitations under the License.
         <div class="modal-body">
           <!-- Settings tabs -->
           <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="active"><a href="#settings-data" aria-controls="settings-data" role="tab" data-toggle="tab">Deine Daten</a></li>
-            <li role="presentation"><a href="#settings-budgets" aria-controls="settings-budgets" role="tab" data-toggle="tab">Budgets</a></li>
-            <li role="presentation" id="nav-tab-settings-buy"><a href="#settings-buy" aria-controls="settings-buy" role="tab" data-toggle="tab">Jahresbeitrag</a></li>
+            <li role="presentation" class="active onLogoffSetActive"><a href="#settings-budgets" aria-controls="settings-budgets" role="tab" data-toggle="tab">Budgets</a></li>
+            <li role="presentation" class="onLoginShow onLogoffHide onLogoffRemoveActive hidden"><a href="#settings-data" aria-controls="settings-data" role="tab" data-toggle="tab">Deine Daten</a></li>
+            <li role="presentation" class="onLoginShow onLogoffHide onLogoffRemoveActive hidden" id="nav-tab-settings-buy"><a href="#settings-buy" aria-controls="settings-buy" role="tab" data-toggle="tab">Jahresbeitrag</a></li>
           </ul>
 
           <!-- Settings panes -->
           <div class="tab-content voffset3">
-            <div role="tabpanel" class="tab-pane active" id="settings-data">
+            <div role="tabpanel" class="tab-pane active onLogoffSetActive" id="settings-budgets">
+              <p>
+                Hier kannst du eigene Budgets erstellen, löschen oder die Reihenfolge verschieben.
+                Standardbudgets kannst du nur ausblenden, nicht löschen.
+              </p>
+              <ul id="budget-settings-list" class="list-group list-group-sm"></ul>
+            </div>
+            <div role="tabpanel" class="tab-pane onLogoffRemoveActive" id="settings-data">
               <form id="settingsForm" class="form-horizontal">
                 <div id="settingsFailed" class="alert alert-danger onLogoffHide onLogoffClearContent hidden" role="alert"></div>
                 <div class="form-group">
@@ -234,14 +241,7 @@ limitations under the License.
                 </div>
               </form>
             </div>
-            <div role="tabpanel" class="tab-pane" id="settings-budgets">
-              <p>
-                Hier kannst du eigene Budgets erstellen, löschen oder die Reihenfolge verschieben.
-                Standardbudgets kannst du nur ausblenden, nicht löschen.
-              </p>
-              <ul id="budget-settings-list" class="list-group list-group-sm"></ul>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="settings-buy">
+            <div role="tabpanel" class="tab-pane onLogoffRemoveActive" id="settings-buy">
               <p>
                 Vielen Dank für dein Interesse an Zehntel.org!
                 Mit deinem Beitrag von 27 € für ein Jahr finanzierst du nicht nur die Kosten für den Betrieb
