@@ -1022,34 +1022,31 @@ limitations under the License.
         budgetids.push(budget.getId())
       })
 
-      var budgetitems = []
       hoodie.store.findAll('budgetmeta')
-      .then(function (allItems) {
-        budgetitems = allItems
-      })
-
-      budgetids.sort(function (a, b) {
-        var aPos = standardBudgets.indexOf(a) === -1 ? 1000 : standardBudgets.indexOf(a)
-        var bPos = standardBudgets.indexOf(b) === -1 ? 1000 : standardBudgets.indexOf(b)
-        budgetitems.forEach(function (budgetitem) {
-          if (budgetitem.position === undefined) {
-            return
-          }
-          if (budgetitem.id === a) {
-            aPos = budgetitem.position
-          }
-          if (budgetitem.id === b) {
-            bPos = budgetitem.position
-          }
+      .then(function (budgetitems) {
+        budgetids.sort(function (a, b) {
+          var aPos = standardBudgets.indexOf(a) === -1 ? 1000 : standardBudgets.indexOf(a)
+          var bPos = standardBudgets.indexOf(b) === -1 ? 1000 : standardBudgets.indexOf(b)
+          budgetitems.forEach(function (budgetitem) {
+            if (budgetitem.position === undefined) {
+              return
+            }
+            if (budgetitem.id === a) {
+              aPos = budgetitem.position
+            }
+            if (budgetitem.id === b) {
+              bPos = budgetitem.position
+            }
+          })
+          return aPos - bPos
         })
-        return aPos - bPos
-      })
 
-      // Now arrange in HTML DOM
-      budgetids.forEach(function (budgetid) {
-        $('#' + budgetid + '-tab-li').detach().appendTo('#budget-tabs')
-        $('#budget-input-' + budgetid).detach().appendTo('#budget-inputs')
-        $('#budget-settings-list-item-' + budgetid).detach().appendTo('#budget-settings-list')
+        // Now arrange in HTML DOM
+        budgetids.forEach(function (budgetid) {
+          $('#' + budgetid + '-tab-li').detach().appendTo('#budget-tabs')
+          $('#budget-input-' + budgetid).detach().appendTo('#budget-inputs')
+          $('#budget-settings-list-item-' + budgetid).detach().appendTo('#budget-settings-list')
+        })
       })
     }
 
