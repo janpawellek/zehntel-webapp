@@ -1045,7 +1045,7 @@ limitations under the License.
         budgetids.forEach(function (budgetid) {
           $('#' + budgetid + '-tab-li').detach().appendTo('#budget-tabs')
           $('#budget-input-' + budgetid).detach().appendTo('#budget-inputs')
-          $('#budget-settings-list-item-' + budgetid).detach().appendTo('#budget-settings-list')
+          $('#budget-settings-list-item-' + budgetid).detach().insertBefore('#budget-settings-list-add')
         })
       })
     }
@@ -1053,7 +1053,7 @@ limitations under the License.
     // Saves the arrangement of budgets as it is in the budget-settings-list
     var saveArrangement = function () {
       var order = []
-      $('#budget-settings-list').children().each(function () {
+      $('#budget-settings-list').children().not('#budget-settings-list-add').each(function () {
         order.push($(this)[0].id.replace('budget-settings-list-item-', ''))
       })
       order.forEach(function (budgetid, index) {
@@ -1123,13 +1123,14 @@ limitations under the License.
       // 2. Add templates to HTML
       $('#budget-inputs').append(inputTemplate(context))
       $('#budget-panes').append(paneTemplate(context))
-      $('#budget-settings-list').append(settingsTemplate(context))
+      $('#budget-settings-list-add').before(settingsTemplate(context))
       $('#budget-tabs').append(tabTemplate(context))
 
       // 3. Run template specific initializations (autoNumeric, event handler)
       $('#' + budgetitem.id + '-panel .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
       $('#budget-input-' + budgetitem.id + ' .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
 
+      // 3a. Hide budget
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-hide-button').click(function () {
         // prevent from hiding the last budget
         if ($('#budget-tabs > li').not('.hidden').length === 1) {
@@ -1145,6 +1146,8 @@ limitations under the License.
           showHoodieError(error)
         })
       })
+
+      // 3b. Show budget
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-show-button').click(function () {
         // persist the show change
         hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
@@ -1156,14 +1159,18 @@ limitations under the License.
           showHoodieError(error)
         })
       })
+
+      // 3c. Move budget up
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-up-button').click(function () {
         var item = $(this).closest('.list-group-item')
         item.prev('.list-group-item').before(item)
         saveArrangement()
       })
+
+      // 3d. Move budget down
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-down-button').click(function () {
         var item = $(this).closest('.list-group-item')
-        item.next('.list-group-item').after(item)
+        item.next('.list-group-item').not('#budget-settings-list-add').after(item)
         saveArrangement()
       })
 
@@ -1191,7 +1198,13 @@ limitations under the License.
         // Register event handler for budgetmeta items
         hoodie.store.on('budgetmeta:change', function (eventName, changedItem) {
           if (eventName === 'remove') {
-            //TODO Remove budget
+            // Remove budget
+            if (standardBudgets.indexOf(changedItem.id) === -1) {
+              $('#budget-input-' + changedItem.id).remove()
+              $('#' + changedItem.id + '-panel').remove()
+              $('#budget-settings-list-item-' + changedItem.id).remove()
+              $('#' + changedItem.id + '-tab-li').remove()
+            }
           } else {
             // Add or update budget
             if (budgets.map(function (budget) { return budget.getId() }).indexOf(changedItem.id) === -1) {
@@ -1209,7 +1222,16 @@ limitations under the License.
           arrangeBudgets()
         })
         hoodie.store.on('clear', function () {
-          //TODO Remove any custom budget. Also unregister Budget's event handlers! (in the Budget object)
+          // Remove any custom budget
+          budgets.forEach(function (budget) {
+            var budgetid = budget.getId()
+            if (standardBudgets.indexOf(budgetid) === -1) {
+              $('#budget-input-' + budgetid).remove()
+              $('#' + budgetid + '-panel').remove()
+              $('#budget-settings-list-item-' + budgetid).remove()
+              $('#' + budgetid + '-tab-li').remove()
+            }
+          })
           // Restore standard budgets
           standardBudgets.forEach(function (budgetid) {
             if ($('#budget-input-' + budgetid).hasClass('hidden')) {
@@ -1217,6 +1239,36 @@ limitations under the License.
             }
           })
           arrangeBudgets()
+        })
+
+        // Register event handler for the creation of new budgets
+        $('#budget-settings-list-add .budget-add-button').click(function () {
+          $('#budget-settings-list-add .budget-settings-list-default').addClass('hidden')
+          $('#budget-settings-list-add .budget-settings-list-rename').removeClass('hidden')
+          $('#budget-settings-list-add-name').val('')
+        })
+        $('#budget-settings-list-add .budget-settings-list-rename form').submit(function (event) {
+          event.preventDefault()
+          var randomString = function (length, chars) {
+            var result = ''
+            for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)]
+            return result
+          }
+          hoodie.store.add('budgetmeta', {
+            id: 'custom-' + randomString(8, '0123456789abcdefghijklmnopqrstuvwxyz'),
+            name: $('#budget-settings-list-add-name').val()
+          })
+          .catch(function (error) {
+            showHoodieError(error)
+          })
+          $('#budget-settings-list-add .budget-settings-list-default').removeClass('hidden')
+          $('#budget-settings-list-add .budget-settings-list-rename').addClass('hidden')
+          $('#budget-settings-list-add-name').val('')
+        })
+        $('#budget-settings-list-add .budget-settings-list-cancel').click(function () {
+          $('#budget-settings-list-add .budget-settings-list-default').removeClass('hidden')
+          $('#budget-settings-list-add .budget-settings-list-rename').addClass('hidden')
+          $('#budget-settings-list-add-name').val('')
         })
 
         initialized = true

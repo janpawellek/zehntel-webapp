@@ -195,10 +195,27 @@ limitations under the License.
           <div class="tab-content voffset3">
             <div role="tabpanel" class="tab-pane active onLogoffSetActive" id="settings-budgets">
               <p>
-                Hier kannst du eigene Budgets erstellen, löschen oder die Reihenfolge verschieben.
+                Hier kannst du eigene Budgets erstellen, löschen oder die Reihenfolge verschieben.<br>
+                Nur leere Budgets können gelöscht werden.
                 Standardbudgets kannst du nur ausblenden, nicht löschen.
               </p>
-              <ul id="budget-settings-list" class="list-group list-group-sm"></ul>
+              <ul id="budget-settings-list" class="list-group list-group-sm">
+                <li id="budget-settings-list-add" class="list-group-item">
+                  <div class="btn-group btn-group-sm budget-settings-list-default onLogoffShow" role="group">
+                    <button type="button" class="btn btn-success budget-add-button">Neues Budget erstellen</button>
+                  </div>
+                  <div class="budget-settings-list-rename onLogoffHide hidden">
+                    <form class="form-inline">
+                      <div class="form-group form-group-sm">
+                        <label class="sr-only" for="budget-settings-list-add-name">Name des Budgets</label>
+                        <input type="text" class="form-control onLogoffClearVal" id="budget-settings-list-add-name" placeholder="Name des Budgets">
+                      </div>
+                      <button type="submit" class="budget-settings-list-ok btn btn-success btn-sm">OK</button>
+                      <button type="reset" class="budget-settings-list-cancel btn btn-danger btn-sm">Nein</button>
+                    </form>
+                  </div>
+                </li>
+              </ul>
             </div>
             <div role="tabpanel" class="tab-pane onLogoffRemoveActive" id="settings-data">
               <form id="settingsForm" class="form-horizontal">
