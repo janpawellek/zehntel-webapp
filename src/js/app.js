@@ -1057,10 +1057,10 @@ limitations under the License.
         order.push($(this)[0].id.replace('budget-settings-list-item-', ''))
       })
       order.forEach(function (budgetid, index) {
-        hoodie.store.findOrAdd('budgetmeta', budgetid, {}, {silent: true})
+        hoodie.store.findOrAdd('budgetmeta', budgetid, {})
         .then(function (item) {
           item.position = index + 1
-          return hoodie.store.update('budgetmeta', budgetid, item, {silent: index + 1 !== order.length})
+          return hoodie.store.update('budgetmeta', budgetid, item)
         })
         .catch(function (error) {
           showHoodieError(error)
@@ -1170,11 +1170,10 @@ limitations under the License.
       // 4. Create Budget object
       budgets.push(new Budget(budgetitem.id))
 
-      // 5. Hide if necessary and arrange
+      // 5. Hide if necessary
       if (budgetitem.hidden) {
         hideBudget(budgetitem.id)
       }
-      arrangeBudgets()
     }
 
     return {
@@ -1187,6 +1186,7 @@ limitations under the License.
         standardBudgets.forEach(function (budgetid) {
           createBudget({id: budgetid})
         })
+        arrangeBudgets()
 
         // Register event handler for budgetmeta items
         hoodie.store.on('budgetmeta:change', function (eventName, changedItem) {
@@ -1204,9 +1204,9 @@ limitations under the License.
               if (!changedItem.hidden && $('#budget-input-' + changedItem.id).hasClass('hidden')) {
                 showBudget(changedItem.id)
               }
-              arrangeBudgets()
             }
           }
+          arrangeBudgets()
         })
         hoodie.store.on('clear', function () {
           //TODO Remove any custom budget. Also unregister Budget's event handlers! (in the Budget object)
