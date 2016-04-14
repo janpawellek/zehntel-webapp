@@ -1017,36 +1017,34 @@ limitations under the License.
 
     // Arranges the order of all budgets according to their position property.
     var arrangeBudgets = function () {
-      var budgetids = []
-      budgets.forEach(function (budget) {
-        budgetids.push(budget.getId())
-      })
+      var sortedids = []
+      var remainingids = []
 
-      hoodie.store.findAll('budgetmeta')
-      .then(function (budgetitems) {
-        budgetids.sort(function (a, b) {
-          var aPos = standardBudgets.indexOf(a) === -1 ? 1000 : standardBudgets.indexOf(a)
-          var bPos = standardBudgets.indexOf(b) === -1 ? 1000 : standardBudgets.indexOf(b)
-          budgetitems.forEach(function (budgetitem) {
-            if (budgetitem.position === undefined) {
-              return
-            }
-            if (budgetitem.id === a) {
-              aPos = budgetitem.position
-            }
-            if (budgetitem.id === b) {
-              bPos = budgetitem.position
-            }
-          })
-          return aPos - bPos
+      Promise.all(budgets.map(function (budget) {
+        return hoodie.store.find('budgetmeta', budget.getId())
+        .then(function (budgetitem) {
+          if (budgetitem.position !== undefined && sortedids[budgetitem.position] === undefined) {
+            sortedids[budgetitem.position] = budget.getId()
+          } else {
+            remainingids.push(budget.getId())
+          }
         })
-
+        .catch(function (error) {
+          if (error.name === 'HoodieNotFoundError') {
+            remainingids.push(budget.getId())
+          }
+        })
+      }))
+      .then(function () {
         // Now arrange in HTML DOM
-        budgetids.forEach(function (budgetid) {
+        sortedids.concat(remainingids).forEach(function (budgetid) {
           $('#' + budgetid + '-tab-li').detach().appendTo('#budget-tabs')
           $('#budget-input-' + budgetid).detach().appendTo('#budget-inputs')
           $('#budget-settings-list-item-' + budgetid).detach().insertBefore('#budget-settings-list-add')
         })
+      })
+      .catch(function (error) {
+        showHoodieError(error.message)
       })
     }
 
@@ -1056,16 +1054,13 @@ limitations under the License.
       $('#budget-settings-list').children().not('#budget-settings-list-add').each(function () {
         order.push($(this)[0].id.replace('budget-settings-list-item-', ''))
       })
-      order.forEach(function (budgetid, index) {
-        hoodie.store.findOrAdd('budgetmeta', budgetid, {})
+      return Promise.all(order.map(function (budgetid, index) {
+        return hoodie.store.findOrAdd('budgetmeta', budgetid, {})
         .then(function (item) {
-          item.position = index + 1
+          item.position = index
           return hoodie.store.update('budgetmeta', budgetid, item)
         })
-        .catch(function (error) {
-          showHoodieError(error)
-        })
-      })
+      }))
     }
 
     var createBudget = function (budgetitem) {
@@ -1137,7 +1132,10 @@ limitations under the License.
           return
         }
         // persist the hide change
-        hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        saveArrangement()
+        .then(function () {
+          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        })
         .then(function (item) {
           item.hidden = true
           return hoodie.store.update('budgetmeta', budgetitem.id, item)
@@ -1150,7 +1148,10 @@ limitations under the License.
       // 3b. Show budget
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-show-button').click(function () {
         // persist the show change
-        hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        saveArrangement()
+        .then(function () {
+          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+        })
         .then(function (item) {
           item.hidden = false
           return hoodie.store.update('budgetmeta', budgetitem.id, item)
@@ -1223,6 +1224,7 @@ limitations under the License.
         })
         hoodie.store.on('clear', function () {
           // Remove any custom budget
+          var restoredBudgets = []
           budgets.forEach(function (budget) {
             var budgetid = budget.getId()
             if (standardBudgets.indexOf(budgetid) === -1) {
@@ -1230,8 +1232,11 @@ limitations under the License.
               $('#' + budgetid + '-panel').remove()
               $('#budget-settings-list-item-' + budgetid).remove()
               $('#' + budgetid + '-tab-li').remove()
+            } else {
+              restoredBudgets.push(budget)
             }
           })
+          budgets = restoredBudgets
           // Restore standard budgets
           standardBudgets.forEach(function (budgetid) {
             if ($('#budget-input-' + budgetid).hasClass('hidden')) {
@@ -1246,6 +1251,7 @@ limitations under the License.
           $('#budget-settings-list-add .budget-settings-list-default').addClass('hidden')
           $('#budget-settings-list-add .budget-settings-list-rename').removeClass('hidden')
           $('#budget-settings-list-add-name').val('')
+          $('#budget-settings-list-add-name').focus()
         })
         $('#budget-settings-list-add .budget-settings-list-rename form').submit(function (event) {
           event.preventDefault()
@@ -1254,9 +1260,13 @@ limitations under the License.
             for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)]
             return result
           }
-          hoodie.store.add('budgetmeta', {
-            id: 'custom-' + randomString(8, '0123456789abcdefghijklmnopqrstuvwxyz'),
-            name: $('#budget-settings-list-add-name').val()
+          var newBudgetName = $('#budget-settings-list-add-name').val()
+          saveArrangement()
+          .then(function () {
+            return hoodie.store.add('budgetmeta', {
+              id: 'custom-' + randomString(8, '0123456789abcdefghijklmnopqrstuvwxyz'),
+              name: newBudgetName
+            })
           })
           .catch(function (error) {
             showHoodieError(error)
