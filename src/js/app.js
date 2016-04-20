@@ -474,8 +474,16 @@ limitations under the License.
         // Encrypt all properties (except id)
         for (var property in item) {
           if (item.hasOwnProperty(property)) {
-            if (property === 'id') {
-              encrypted.id = item.id
+            if (
+              property === 'preSignIn' ||
+              /^_/.test(property) ||
+              property === 'createdAt' ||
+              property === 'createdBy' ||
+              property === 'id' ||
+              property === 'updatedAt' ||
+              property === 'type'
+            ) {
+              encrypted[property] = item[property]
               continue
             }
             encrypted[property] = sjcl.codec.hex.fromBits(
@@ -543,6 +551,8 @@ limitations under the License.
                   sjcl.codec.hex.toBits(adata)
                 )
               )
+              if (decrypted[property] === 'true') decrypted[property] = true
+              if (decrypted[property] === 'false') decrypted[property] = false
             } else {
               decrypted[property] = item[property]
             }
@@ -1023,8 +1033,9 @@ limitations under the License.
       Promise.all(budgets.map(function (budget) {
         return hoodie.store.find('budgetmeta', budget.getId())
         .then(function (budgetitem) {
-          if (budgetitem.position !== undefined && sortedids[budgetitem.position] === undefined) {
-            sortedids[budgetitem.position] = budget.getId()
+          var decrypted = Encryption.decryptIfSignedIn(budgetitem)
+          if (decrypted && decrypted.position !== undefined && sortedids[decrypted.position] === undefined) {
+            sortedids[decrypted.position] = budget.getId()
           } else {
             remainingids.push(budget.getId())
           }
@@ -1055,10 +1066,12 @@ limitations under the License.
         order.push($(this)[0].id.replace('budget-settings-list-item-', ''))
       })
       return Promise.all(order.map(function (budgetid, index) {
-        return hoodie.store.findOrAdd('budgetmeta', budgetid, {})
+        return hoodie.store.findOrAdd('budgetmeta', budgetid, Encryption.encryptIfSignedIn({}))
         .then(function (item) {
-          item.position = index
-          return hoodie.store.update('budgetmeta', budgetid, item)
+          var decrypted = Encryption.decryptIfSignedIn(item)
+          if (decrypted === undefined) decrypted = {}
+          decrypted.position = index
+          return hoodie.store.update('budgetmeta', budgetid, Encryption.encryptIfSignedIn(decrypted))
         })
       }))
     }
@@ -1124,6 +1137,7 @@ limitations under the License.
       // 3. Run template specific initializations (autoNumeric, event handler)
       $('#' + budgetitem.id + '-panel .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
       $('#budget-input-' + budgetitem.id + ' .autonumeric').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
+      $('#' + budgetitem.id + '-panel .insertToday').val(moment().format('DD.MM.YYYY'))
 
       // 3a. Hide budget
       $('#budget-settings-list-item-' + budgetitem.id + ' .budget-hide-button').click(function () {
@@ -1134,11 +1148,13 @@ limitations under the License.
         // persist the hide change
         saveArrangement()
         .then(function () {
-          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn({}))
         })
         .then(function (item) {
-          item.hidden = true
-          return hoodie.store.update('budgetmeta', budgetitem.id, item)
+          var decrypted = Encryption.decryptIfSignedIn(item)
+          if (decrypted === undefined) decrypted = {}
+          decrypted.hidden = true
+          return hoodie.store.update('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn(decrypted))
         })
         .catch(function (error) {
           showHoodieError(error)
@@ -1150,11 +1166,13 @@ limitations under the License.
         // persist the show change
         saveArrangement()
         .then(function () {
-          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, {})
+          return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn({}))
         })
         .then(function (item) {
-          item.hidden = false
-          return hoodie.store.update('budgetmeta', budgetitem.id, item)
+          var decrypted = Encryption.decryptIfSignedIn(item)
+          if (decrypted === undefined) decrypted = {}
+          decrypted.hidden = false
+          return hoodie.store.update('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn(decrypted))
         })
         .catch(function (error) {
           showHoodieError(error)
@@ -1196,6 +1214,23 @@ limitations under the License.
         })
         arrangeBudgets()
 
+        // Helper function to handle new Budget items
+        var addOrUpdateBudget = function (item) {
+          // Add budget if not added yet
+          if (budgets.map(function (budget) { return budget.getId() }).indexOf(item.id) === -1) {
+            createBudget(item)
+          }
+          // Update budget
+          if (item.hidden !== undefined) {
+            if (item.hidden && !$('#' + item.id + '-panel').hasClass('hidden')) {
+              hideBudget(item.id)
+            }
+            if (!item.hidden && $('#' + item.id + '-panel').hasClass('hidden')) {
+              showBudget(item.id)
+            }
+          }
+        }
+
         // Register event handler for budgetmeta items
         hoodie.store.on('budgetmeta:change', function (eventName, changedItem) {
           if (eventName === 'remove') {
@@ -1208,16 +1243,16 @@ limitations under the License.
             }
           } else {
             // Add or update budget
-            if (budgets.map(function (budget) { return budget.getId() }).indexOf(changedItem.id) === -1) {
-              createBudget(changedItem)
+            var decrypted = Encryption.decryptIfSignedIn(changedItem)
+            if (decrypted) {
+              addOrUpdateBudget(decrypted)
             } else {
-              // Update budget
-              if (changedItem.hidden && !$('#budget-input-' + changedItem.id).hasClass('hidden')) {
-                hideBudget(changedItem.id)
-              }
-              if (!changedItem.hidden && $('#budget-input-' + changedItem.id).hasClass('hidden')) {
-                showBudget(changedItem.id)
-              }
+              hoodie.one('encryptionReady', function () {
+                decrypted = Encryption.decryptIfSignedIn(changedItem)
+                if (!decrypted) return
+                addOrUpdateBudget(decrypted)
+                arrangeBudgets()
+              })
             }
           }
           arrangeBudgets()
@@ -1263,10 +1298,10 @@ limitations under the License.
           var newBudgetName = $('#budget-settings-list-add-name').val()
           saveArrangement()
           .then(function () {
-            return hoodie.store.add('budgetmeta', {
+            return hoodie.store.add('budgetmeta', Encryption.encryptIfSignedIn({
               id: 'custom-' + randomString(8, '0123456789abcdefghijklmnopqrstuvwxyz'),
               name: newBudgetName
-            })
+            }))
           })
           .catch(function (error) {
             showHoodieError(error)
@@ -1472,7 +1507,6 @@ limitations under the License.
                       /^_/.test(property) ||
                       property === 'createdAt' ||
                       property === 'createdBy' ||
-                      property === 'id' ||
                       property === 'updatedAt'
                     ) {
                       continue
