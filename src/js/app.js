@@ -1193,6 +1193,40 @@ limitations under the License.
         saveArrangement()
       })
 
+      // 3e. Delete budget
+      $('#budget-settings-list-item-' + budgetitem.id + ' .budget-delete-button').click(function () {
+        hoodie.store.remove('budgetmeta', budgetitem.id)
+        .catch(function (error) {
+          showHoodieError(error)
+        })
+      })
+
+      // 3f. Enable delete option on empty custom budgets
+      if (/^custom/.test(budgetitem.id)) {
+        var enableDeleteIfEmpty = function (itemid) {
+          hoodie.store.findAll(itemid + 'item')
+          .then(function (items) {
+            if (!items.length) {
+              $('#budget-settings-list-item-' + itemid + ' .budget-delete-button').removeClass('hidden')
+              $('#budget-settings-list-item-' + itemid + ' .budget-hide-button').addClass('hidden')
+            }
+          })
+        }
+
+        // Enable delete button
+        enableDeleteIfEmpty(budgetitem.id)
+        // Event handler to toggle delete/hide button
+        hoodie.store.on(budgetitem.id + 'item:change', function (eventName, changedItem) {
+          if (eventName === 'remove') {
+            enableDeleteIfEmpty(budgetitem.id)
+          } else {
+            // disable delete button
+            $('#budget-settings-list-item-' + budgetitem.id + ' .budget-delete-button').addClass('hidden')
+            $('#budget-settings-list-item-' + budgetitem.id + ' .budget-hide-button').removeClass('hidden')
+          }
+        })
+      }
+
       // 4. Create Budget object
       budgets.push(new Budget(budgetitem.id))
 
@@ -1820,15 +1854,16 @@ limitations under the License.
 
     // helper function to update the percentage and the remaining amount of income
     var updateIncomeSum = function () {
-      var budgetids = BudgetManager.getBudgetIds()
       var amount = $('#income-amount').autoNumeric('get')
       var remainingSum = amount
 
-      budgetids.forEach(function (budgetid) {
-        var budgetamount = $('#income-' + budgetid).autoNumeric('get')
-        var percentage = (100 * budgetamount / amount).toFixed(0)
-        $('#income-' + budgetid + '-percentage').text(percentage + ' %')
-        remainingSum -= budgetamount
+      BudgetManager.getBudgetIds().forEach(function (budgetid) {
+        if ($('#income-' + budgetid).length) {
+          var budgetamount = $('#income-' + budgetid).autoNumeric('get')
+          var percentage = (100 * budgetamount / amount).toFixed(0)
+          $('#income-' + budgetid + '-percentage').text(percentage + ' %')
+          remainingSum -= budgetamount
+        }
       })
 
       $('#income-sum-text').autoNumeric('init', {aSep: '.', aDec: ',', aSign: ' €', pSign: 's'})
@@ -1866,7 +1901,7 @@ limitations under the License.
 
           // set all budget fields
           BudgetManager.getBudgetIds().forEach(function (budgetid) {
-            if (!$('#budget-input-' + budgetid).hasClass('hidden')) {
+            if ($('#income-' + budgetid).length && !$('#budget-input-' + budgetid).hasClass('hidden')) {
               hoodie.store.findAll(function (object) {
                 if ((object.type) !== (budgetid + 'item')) {
                   return false
@@ -1876,7 +1911,7 @@ limitations under the License.
               })
               .then(function (items) {
                 if (items.length > 0) {
-                  $('#income-' + budgetid).autoNumeric('set', escapeHtml(Encryption.decrypt(items[0]).amount))
+                  $('#income-' + budgetid).autoNumeric('set', escapeHtml(Encryption.decryptIfSignedIn(items[0]).amount))
                   updateIncomeSum()
                 }
               })
@@ -1916,7 +1951,9 @@ limitations under the License.
       var remainingSum = strAmount
 
       budgetids.forEach(function (budgetid) {
-        remainingSum -= $('#income-' + budgetid).autoNumeric('get')
+        if ($('#income-' + budgetid).length) {
+          remainingSum -= $('#income-' + budgetid).autoNumeric('get')
+        }
       })
 
       valDate = moment(rawDate, ['DD.MM.YY', 'DD.MM.YYYY', 'D.M.YYYY', 'D.M.YY', 'MM/DD/YYYY', 'YYYY/MM/DD'], true)
@@ -1968,7 +2005,7 @@ limitations under the License.
         incomeId = income.id
 
         return Promise.all(budgetids.map(function (budgetid) {
-          var budgetamount = $('#income-' + budgetid).autoNumeric('get')
+          var budgetamount = $('#income-' + budgetid).length ? $('#income-' + budgetid).autoNumeric('get') : 0
           if (budgetamount > 0) {
             return hoodie.store.add(budgetid + 'item', Encryption.encryptIfSignedIn({
               date: strDate,
