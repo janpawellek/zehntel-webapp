@@ -108,6 +108,11 @@ limitations under the License.
   padding: 10px 15px;
 }
 
+#settingsModal .budget-rename-button.hidden + .budget-up-button {
+  border-bottom-left-radius: 3px !important;
+  border-top-left-radius: 3px !important;
+}
+
 #settingsModal .budget-hide-button,
 #settingsModal .budget-show-button,
 #settingsModal .budget-delete-button {

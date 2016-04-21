@@ -1025,6 +1025,18 @@ limitations under the License.
       $('#' + budgetid + '-tab-li').removeClass('hidden')
     }
 
+    // Renames a previously created budget.
+    // Does not persist the rename action, only alters the page.
+    var renameBudget = function (budgetid, newName) {
+      var oldName = $('.budget-' + budgetid + '-name').first().text()
+      if (oldName !== newName) {
+        $('.budget-' + budgetid + '-name').text(newName)
+        $('#' + budgetid + '-input-subject').attr('placeholder',
+          $('#' + budgetid + '-input-subject').attr('placeholder').replace(oldName, escapeHtml(newName))
+        )
+      }
+    }
+
     // Arranges the order of all budgets according to their position property.
     var arrangeBudgets = function () {
       var sortedids = []
@@ -1227,6 +1239,47 @@ limitations under the License.
         })
       }
 
+      // 3g. Rename custom budget
+      if (/^custom/.test(budgetitem.id)) {
+        // a) enable renaming
+        $('#budget-settings-list-item-' + budgetitem.id + ' .budget-rename-button').removeClass('hidden')
+        $('#budget-settings-list-item-' + budgetitem.id + '-name').val(budgetitem.name)
+
+        // b) start renaming
+        $('#budget-settings-list-item-' + budgetitem.id + ' .budget-rename-button').click(function () {
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-default').addClass('hidden')
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-rename').removeClass('hidden')
+          $('#budget-settings-list-item-' + budgetitem.id + '-name').focus()
+        })
+
+        // c) submit renaming
+        $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-rename form').submit(function (event) {
+          event.preventDefault()
+          var newBudgetName = $('#budget-settings-list-item-' + budgetitem.id + '-name').val()
+          saveArrangement()
+          .then(function () {
+            return hoodie.store.findOrAdd('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn({}))
+          })
+          .then(function (item) {
+            var decrypted = Encryption.decryptIfSignedIn(item)
+            if (decrypted === undefined) decrypted = {}
+            decrypted.name = newBudgetName
+            return hoodie.store.update('budgetmeta', budgetitem.id, Encryption.encryptIfSignedIn(decrypted))
+          })
+          .catch(function (error) {
+            showHoodieError(error)
+          })
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-default').removeClass('hidden')
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-rename').addClass('hidden')
+        })
+
+        // d) cancel renaming
+        $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-cancel').click(function () {
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-default').removeClass('hidden')
+          $('#budget-settings-list-item-' + budgetitem.id + ' .budget-settings-list-rename').addClass('hidden')
+        })
+      }
+
       // 4. Create Budget object
       budgets.push(new Budget(budgetitem.id))
 
@@ -1255,6 +1308,7 @@ limitations under the License.
             createBudget(item)
           }
           // Update budget
+          // a) Hidden state
           if (item.hidden !== undefined) {
             if (item.hidden && !$('#' + item.id + '-panel').hasClass('hidden')) {
               hideBudget(item.id)
@@ -1262,6 +1316,10 @@ limitations under the License.
             if (!item.hidden && $('#' + item.id + '-panel').hasClass('hidden')) {
               showBudget(item.id)
             }
+          }
+          // b) Name
+          if (item.name !== undefined) {
+            renameBudget(item.id, item.name)
           }
         }
 
@@ -1313,6 +1371,20 @@ limitations under the License.
             }
           })
           arrangeBudgets()
+        })
+
+        // Initial fetch of budget items
+        hoodie.store.findAll('budgetmeta')
+        .then(function (items) {
+          items.forEach(function (item) {
+            var decrypted = Encryption.decryptIfSignedIn(item)
+            if (!decrypted) return
+            addOrUpdateBudget(decrypted)
+          })
+          arrangeBudgets()
+        })
+        .catch(function (error) {
+          showHoodieError(error.messag)
         })
 
         // Register event handler for the creation of new budgets

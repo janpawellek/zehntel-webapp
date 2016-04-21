@@ -3,7 +3,7 @@
     <h1>
       <span class="onEmptyShow">Dein Budget</span>
       <span class="{{budget-id}}-transactions-sum onLogoffClearContent onEmptyHide hidden"></span>
-      {{budget-title}}
+      {{{budget-title}}}
     </h1>
     <p>
       {{{budget-description}}}
@@ -49,7 +49,7 @@
         </td>
         <td>
           <div class="form-group">
-            <label class="sr-only" for="{{budget-id}}-input-subject">Ausgaben aus dem {{budget-name}}-Budget hier eintragen</label>
+            <label class="sr-only" for="{{budget-id}}-input-subject">Ausgaben aus dem <span class="budget-{{budget-id}}-name">{{budget-name}}</span>-Budget hier eintragen</label>
             <div class="input-group">
               <input type="text" class="form-control input-sm onLogoffClearVal" id="{{budget-id}}-input-subject" placeholder="Ausgabe aus dem {{budget-name}}-Budget hier eintragen">
             </div>

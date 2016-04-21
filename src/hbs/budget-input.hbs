@@ -1,7 +1,7 @@
 <div id="budget-input-{{budget-id}}" class="form-group">
   <label for="income-{{budget-id}}" class="col-sm-2 control-label">
     {{#if budget-heart}}<span class="glyphicon glyphicon-heart" aria-hidden="true"></span>{{/if}}
-    {{budget-name}}:
+    <span class="budget-{{budget-id}}-name">{{budget-name}}</span>:
   </label>
   <div class="col-sm-4 col-md-3">
     <div class="input-group">
