@@ -10,7 +10,7 @@ This repository contains the Zehntel-Webapp, a web application written with the 
 3. Install Bower: `npm install -g bower`
 4. Run `bower install` in this directory.
 5. Install Grunt: `npm install -g grunt-cli`
-6. Run Grunt: `grunt`
+6. Run Grunt: `grunt` (or for development: `grunt dev`)
 
 ## Start
 

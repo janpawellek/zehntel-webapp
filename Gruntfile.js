@@ -60,12 +60,34 @@ module.exports = function (grunt) {
         dest: 'www/',
         flatten: true
       }
+    },
+
+    // Minimize JS
+    uglify: {
+      prod: {
+        files: {
+          'www/lib/bower.js': ['www/lib/bower.js']
+        }
+      }
+    },
+
+    // Minimize CSS
+    cssmin: {
+      prod: {
+        files: {
+          'www/lib/bower.css': ['www/lib/bower.css']
+        }
+      }
     }
   })
 
   grunt.loadNpmTasks('grunt-bower-concat')
   grunt.loadNpmTasks('grunt-contrib-copy')
   grunt.loadNpmTasks('grunt-includes')
+  grunt.loadNpmTasks('grunt-contrib-uglify')
+  grunt.loadNpmTasks('grunt-contrib-cssmin')
 
-  grunt.registerTask('default', ['bower_concat', 'copy', 'includes'])
+  grunt.registerTask('dev', ['bower_concat', 'copy', 'includes'])
+  grunt.registerTask('prod', ['bower_concat', 'copy', 'includes', 'uglify', 'cssmin'])
+  grunt.registerTask('default', ['prod'])
 }
